@@ -289,3 +289,57 @@ test('kortkode tastes som en produktnøkkel: strekene kommer av seg selv @mobil'
   await expect(page.locator('.big-result, [data-big]').first()).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+// Hver overskrift i et skjema skal ha noe å fylle ut. Fanger feil der et felt ikke blir laget.
+async function expectAllFieldsHaveControls(page) {
+  const modal = page.locator('.modal').last();
+  await expect(modal).toBeVisible();
+  const missing = await modal.evaluate((m) => [...m.querySelectorAll('.field')]
+    .filter((f) => f.querySelector('.field-label') && !f.querySelector('input, select, textarea, button, .swatches, .chips, .hint'))
+    .map((f) => f.querySelector('.field-label').textContent));
+  expect(missing).toEqual([]);
+  const empty = await modal.evaluate((m) => [...m.querySelectorAll('label.field')].filter((f) => !f.querySelector('input, select, textarea')).map((f) => f.textContent.trim()));
+  expect(empty).toEqual([]);
+}
+
+test('nytt jorde uten kart: alle felt kan fylles ut, og jordet lagres', async ({ page }) => {
+  const errors = await startDemo(page);
+  await page.goto('/v2/#/admin/fields');
+  await acceptPrivacyIfAsked(page);
+  const before = await dbCount(page, 'fields');
+  await page.click('[data-act=add-field]');
+  await expectAllFieldsHaveControls(page);
+  const modal = page.locator('.modal');
+  await modal.locator('input[name=name]').fill('Testjordet');
+  await modal.locator('select[name=crop]').selectOption('RUBID');
+  await modal.locator('input[name=area]').fill('4.5');
+  await modal.locator('select[name=quality]').selectOption('A');
+  await modal.getByRole('button', { name: 'Lagre' }).click();
+  await expect(modal).toBeHidden();
+  expect(await dbCount(page, 'fields')).toBe(before + 1);
+  const f = await page.evaluate(async () => (await import('/v2/js/core/store.js')).all('fields').find((x) => x.name === 'Testjordet'));
+  expect(f).toMatchObject({ crop: 'RUBID', areaDaa: 4.5, defaultQuality: 'A' });
+  await expect(page.locator('.admin-main')).toContainText('Testjordet');
+  // Endre det samme jordet
+  await page.locator('.admin-main').getByText('Testjordet').first().click();
+  expect(errors).toEqual([]);
+});
+
+test('alle «ny»-skjemaer i administrasjonen har felt under hver overskrift', async ({ page }) => {
+  const errors = await startDemo(page);
+  const forms = [
+    ['fields', '[data-act=add-field]'], ['people', '[data-act=add-person]'], ['crops', '[data-act=add-variety]'], ['crops', '[data-act=add-cratetype]'],
+    ['products', '[data-act=add-product]'], ['products', '[data-act=purchase]'], ['spraying', '[data-act=new-task]'], ['trace', '[data-act=new-pallet]'],
+    ['registrations', '[data-act=add-registration]'],
+  ];
+  let first = true;
+  for (const [pg, sel] of forms) {
+    await page.goto(`/v2/#/admin/${pg}`);
+    if (first) { await acceptPrivacyIfAsked(page); first = false; }
+    await page.locator(sel).first().click();
+    await expectAllFieldsHaveControls(page);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.modal')).toHaveCount(0);
+  }
+  expect(errors).toEqual([]);
+});

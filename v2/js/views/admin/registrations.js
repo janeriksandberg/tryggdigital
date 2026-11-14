@@ -23,7 +23,7 @@ export function render(ctx) {
   return h('div', { class: 'stack' },
     pageHead(t('nav.registrations'), t('reg.text'),
       h('button', { class: 'btn light', onclick: () => exportHours() }, icon('download', 18), t('reg.exportHours')),
-      h('button', { class: 'btn primary', onclick: () => (tab === 'shifts' ? editShift(null, ctx) : editCrate(null, ctx)) }, icon('plus', 18), tab === 'shifts' ? t('reg.addShift') : t('reg.addCrate'))),
+      h('button', { class: 'btn primary', 'data-act': 'add-registration', onclick: () => (tab === 'shifts' ? editShift(null, ctx) : editCrate(null, ctx)) }, icon('plus', 18), tab === 'shifts' ? t('reg.addShift') : t('reg.addCrate'))),
     openOld.length ? h('div', { class: 'notice warn', 'data-open-old': openOld.length }, icon('alert'), h('div', { class: 'grow' }, h('p', {}, t('reg.openOld', { n: openOld.length })),
       h('div', { class: 'row wrap' }, openOld.slice(0, 8).map((s) => h('button', { class: 'btn small light', onclick: () => editShift(s, ctx) }, `${people.get(s.personId)?.name || '?'} · ${fmtDay(D.dayKey(s.start))}`))))) : null,
     h('div', { class: 'row wrap' },
