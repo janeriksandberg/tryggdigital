@@ -73,7 +73,7 @@ export default {
   'karens.title': 'Pre-harvest interval – do not harvest!', 'karens.text': '{field} was sprayed on {date} ({products}). Harvesting is allowed from {allowed}.',
   'karens.blocked': 'Registration is blocked. The foreman has been notified.', 'karens.warnOnly': 'The foreman will be notified if you register.',
   'scan.title': 'Scan QR code', 'scan.hint': 'Keep the code inside the frame', 'scan.hintCard': 'Hold your QR card in front of the camera',
-  'scan.starting': 'Starting camera …', 'scan.looking': 'Looking for a code …', 'scan.torch': 'Light', 'scan.manual': 'Type the code', 'scan.manualLabel': 'Code',
+  'scan.starting': 'Starting camera …', 'scan.looking': 'Looking for a code …', 'scan.torch': 'Light', 'scan.manual': 'Type the code', 'scan.manualLabel': 'Code', 'scan.switchCamera': 'Switch camera', 'scan.maskHint': 'Type only the letters and numbers – the dashes are added for you.',
   'scan.noCamera': 'No camera found. Type the code instead.', 'scan.noPermission': 'The app may not use the camera. Allow the camera in the browser, or type the code.',
   'scan.noDetector': 'Scanning is not supported here. Type the code instead.', 'scan.notAccepted': 'Card not accepted',
   'scan.revoked': 'This card is blocked. Ask the foreman for a new one.', 'scan.inactive': 'This person is not active. Contact the foreman.',

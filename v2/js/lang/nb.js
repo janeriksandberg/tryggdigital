@@ -78,7 +78,7 @@ export default {
   'karens.title': 'Karenstid – ikke høst!', 'karens.text': '{field} ble sprøytet {date} ({products}). Høsting er tillatt fra {allowed}.',
   'karens.blocked': 'Registrering er sperret. Formannen er varslet.', 'karens.warnOnly': 'Formannen blir varslet hvis du registrerer.',
   'scan.title': 'Skann QR-kode', 'scan.hint': 'Hold koden inne i rammen', 'scan.hintCard': 'Hold QR-kortet ditt foran kameraet',
-  'scan.starting': 'Starter kamera …', 'scan.looking': 'Ser etter kode …', 'scan.torch': 'Lys', 'scan.manual': 'Skriv koden', 'scan.manualLabel': 'Kode',
+  'scan.starting': 'Starter kamera …', 'scan.looking': 'Ser etter kode …', 'scan.torch': 'Lys', 'scan.manual': 'Skriv koden', 'scan.manualLabel': 'Kode', 'scan.switchCamera': 'Bytt kamera', 'scan.maskHint': 'Skriv bare bokstavene og tallene – strekene kommer av seg selv.',
   'scan.noCamera': 'Fant ikke kamera. Skriv koden i stedet.', 'scan.noPermission': 'Appen fikk ikke bruke kameraet. Tillat kamera i nettleseren, eller skriv koden.',
   'scan.noDetector': 'Skanning er ikke støttet her. Skriv koden i stedet.', 'scan.notAccepted': 'Kortet ble ikke godtatt',
   'scan.revoked': 'Dette kortet er sperret. Spør formannen om et nytt.', 'scan.inactive': 'Personen er ikke aktiv. Kontakt formannen.',

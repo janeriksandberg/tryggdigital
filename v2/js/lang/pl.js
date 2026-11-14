@@ -34,7 +34,7 @@ export default {
   'karens.title': 'Okres karencji – nie zbierać!', 'karens.text': '{field} było opryskane {date} ({products}). Zbiór jest dozwolony od {allowed}.',
   'karens.blocked': 'Rejestracja jest zablokowana. Brygadzista został powiadomiony.', 'karens.warnOnly': 'Jeśli zarejestrujesz, brygadzista zostanie powiadomiony.',
   'scan.title': 'Zeskanuj kod QR', 'scan.hint': 'Trzymaj kod w ramce', 'scan.hintCard': 'Trzymaj kartę QR przed kamerą',
-  'scan.starting': 'Uruchamianie kamery …', 'scan.looking': 'Szukam kodu …', 'scan.torch': 'Światło', 'scan.manual': 'Wpisz kod', 'scan.manualLabel': 'Kod',
+  'scan.starting': 'Uruchamianie kamery …', 'scan.looking': 'Szukam kodu …', 'scan.torch': 'Światło', 'scan.manual': 'Wpisz kod', 'scan.manualLabel': 'Kod', 'scan.switchCamera': 'Zmień kamerę', 'scan.maskHint': 'Wpisz tylko litery i cyfry – myślniki dodadzą się same.',
   'scan.noCamera': 'Nie znaleziono kamery. Wpisz kod.', 'scan.noPermission': 'Aplikacja nie ma dostępu do kamery. Zezwól na kamerę w przeglądarce albo wpisz kod.',
   'scan.noDetector': 'Skanowanie nie jest tu obsługiwane. Wpisz kod.', 'scan.notAccepted': 'Karta nie została przyjęta',
   'scan.revoked': 'Ta karta jest zablokowana. Poproś brygadzistę o nową.', 'scan.inactive': 'Ta osoba nie jest aktywna. Skontaktuj się z brygadzistą.',

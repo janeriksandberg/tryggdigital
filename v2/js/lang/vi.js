@@ -34,7 +34,7 @@ export default {
   'karens.title': 'Thời gian cách ly – không được hái!', 'karens.text': '{field} đã được phun thuốc ngày {date} ({products}). Được phép hái từ {allowed}.',
   'karens.blocked': 'Không thể đăng ký. Đội trưởng đã được thông báo.', 'karens.warnOnly': 'Nếu bạn đăng ký, đội trưởng sẽ được thông báo.',
   'scan.title': 'Quét mã QR', 'scan.hint': 'Giữ mã trong khung', 'scan.hintCard': 'Giữ thẻ QR trước camera',
-  'scan.starting': 'Đang bật camera …', 'scan.looking': 'Đang tìm mã …', 'scan.torch': 'Đèn', 'scan.manual': 'Nhập mã', 'scan.manualLabel': 'Mã',
+  'scan.starting': 'Đang bật camera …', 'scan.looking': 'Đang tìm mã …', 'scan.torch': 'Đèn', 'scan.manual': 'Nhập mã', 'scan.manualLabel': 'Mã', 'scan.switchCamera': 'Đổi camera', 'scan.maskHint': 'Chỉ cần nhập chữ và số – dấu gạch ngang sẽ tự được thêm vào.',
   'scan.noCamera': 'Không tìm thấy camera. Hãy nhập mã.', 'scan.noPermission': 'Ứng dụng không được dùng camera. Cho phép camera trong trình duyệt hoặc nhập mã.',
   'scan.noDetector': 'Không hỗ trợ quét ở đây. Hãy nhập mã.', 'scan.notAccepted': 'Thẻ không được chấp nhận',
   'scan.revoked': 'Thẻ này đã bị khóa. Hãy xin đội trưởng thẻ mới.', 'scan.inactive': 'Người này không còn hoạt động. Liên hệ đội trưởng.',

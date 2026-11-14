@@ -107,9 +107,11 @@ test('kort som er sperret eller fra feil gård avvises', async ({ page }) => {
   await scanCode(page, 'TD2:AAAAAAAAAAAAAAAAAAAAAAAAAA');
   await expect(okBig(page)).toHaveClass(/error/);
   await closeBig(page);
+  // En kode i feil format kan ikke sendes inn for hånd: OK er sperret til alle tegnene er skrevet
   await page.click('[data-act=start]');
   await scanCode(page, 'hei');
-  await expect(okBig(page)).toHaveClass(/error/);
+  await expect(page.locator('.manual-form button[type=submit]')).toBeDisabled();
+  await expect(page.locator('input[name=manualcode]')).toHaveValue('HE1');
 });
 
 test('alle administrasjonssider vises uten feil og uten manglende tekster', async ({ page }) => {
@@ -212,4 +214,78 @@ test('appen nekter å kjøre inne i en ramme (clickjacking)', async ({ page }) =
   await page.setContent('<iframe src="http://localhost:8123/v2/" width="800" height="600"></iframe>');
   const frame = page.frameLocator('iframe');
   await expect(frame.locator('#app')).toContainText('kan ikke vises inne i en annen side');
+});
+
+// To falske kameraer (lerret som videokilde), så vi kan prøve kamerabytte uten ekte maskinvare.
+const FAKE_CAMERAS = () => {
+  const cams = [{ deviceId: 'cam-back', label: 'Bakkamera', kind: 'videoinput', groupId: 'g' }, { deviceId: 'cam-front', label: 'Frontkamera', kind: 'videoinput', groupId: 'g' }];
+  window.__camCalls = [];
+  navigator.mediaDevices.enumerateDevices = async () => cams.map((c) => ({ ...c, toJSON: () => c }));
+  navigator.mediaDevices.getUserMedia = async (c) => {
+    const want = c.video?.deviceId?.exact;
+    window.__camCalls.push(want || 'default');
+    const id = want || 'cam-back';
+    const canvas = Object.assign(document.createElement('canvas'), { width: 320, height: 240 });
+    const ctx = canvas.getContext('2d'); ctx.fillStyle = id === 'cam-back' ? '#264' : '#642'; ctx.fillRect(0, 0, 320, 240);
+    const stream = canvas.captureStream(5);
+    const track = stream.getVideoTracks()[0];
+    track.getSettings = () => ({ deviceId: id });
+    track.getCapabilities = () => ({});
+    return stream;
+  };
+};
+
+test('skanner: bytt mellom kameraer, og valget huskes @mobil', async ({ page }) => {
+  await page.addInitScript(FAKE_CAMERAS);
+  const errors = await startDemo(page);
+  await page.click('[data-act=start]');
+  const btn = page.locator('[data-act=switch-camera]');
+  await expect(btn).toBeVisible();
+  await expect(btn).toContainText('(1/2)');
+  await btn.click();
+  await expect(btn).toContainText('(2/2)');
+  expect(await page.evaluate(() => window.__camCalls.at(-1))).toBe('cam-front');
+  expect(await page.evaluate(() => localStorage.getItem('td2.camera'))).toBe('cam-front');
+  await btn.click();
+  await expect(btn).toContainText('(1/2)');
+  await btn.click();
+  await page.getByRole('button', { name: /Avbryt|Cancel/ }).click();
+  // Neste skanning starter med kameraet som sist ble valgt
+  await page.click('[data-act=start]');
+  await expect(btn).toContainText('(2/2)');
+  expect(await page.evaluate(() => window.__camCalls.at(-1))).toBe('cam-front');
+  // Ved inntasting skjules kameraknappen og kameraet stoppes
+  await page.click('[data-act=manual]');
+  await expect(btn).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
+test('kortkode tastes som en produktnøkkel: strekene kommer av seg selv @mobil', async ({ page }) => {
+  const errors = await startDemo(page);
+  const tok = await tokenFor(page, 'Anna Kowalska');
+  await page.click('[data-act=start]');
+  await page.click('[data-act=manual]');
+  const input = page.locator('input[name=manualcode]');
+  const ok = page.locator('.manual-form button[type=submit]');
+  await expect(page.locator('.code-ghost')).toHaveText('____-____-____-____-____-____-__');
+  await input.pressSequentially(tok.slice(0, 4).toLowerCase());
+  await expect(input).toHaveValue(tok.slice(0, 4) + '-');
+  await expect(ok).toBeDisabled();
+  await input.pressSequentially(tok.slice(4, 6));
+  await expect(input).toHaveValue(`${tok.slice(0, 4)}-${tok.slice(4, 6)}`);
+  // Sletting over en strek tar med tegnet foran
+  await input.press('Backspace'); await input.press('Backspace');
+  await expect(input).toHaveValue(tok.slice(0, 4) + '-');
+  await input.press('Backspace');
+  await expect(input).toHaveValue(tok.slice(0, 3));
+  // Innliming av hele koden med streker
+  const pretty = tok.match(/.{1,4}/g).join('-');
+  await input.fill('');
+  await input.fill(pretty);
+  await expect(input).toHaveValue(pretty);
+  await expect(ok).toBeEnabled();
+  await ok.click();
+  await acceptPrivacyIfAsked(page);
+  await expect(page.locator('.big-result, [data-big]').first()).toBeVisible();
+  expect(errors).toEqual([]);
 });

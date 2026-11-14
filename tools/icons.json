@@ -11,7 +11,7 @@
  "tag":"tag","layers":"layers","list":"list","clipboard":"clipboard-list","eye":"eye","search":"search","home":"house",
  "menu":"menu","chevRight":"chevron-right","chevLeft":"chevron-left","chevDown":"chevron-down","arrowRight":"arrow-right",
  "bell":"bell-ring","play":"play","stop":"square","truck":"truck","scale":"scale","star":"star","trophy":"trophy",
- "flame":"flame","camera":"camera","keyboard":"keyboard","link":"link","unlink":"unlink","building":"building-2",
+ "flame":"flame","camera":"camera","switchCamera":"switch-camera","keyboard":"keyboard","link":"link","unlink":"unlink","building":"building-2",
  "ban":"ban","timer":"timer","hourglass":"hourglass","database":"database","backup":"database-backup","server":"server",
  "radio":"radio-tower","award":"award","crown":"crown","sun":"sun","moon":"moon","filter":"list-filter","copy":"copy",
  "send":"send","receipt":"receipt","banknote":"banknote","route":"route","target":"target","bug":"bug"
