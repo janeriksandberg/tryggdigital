@@ -50,8 +50,8 @@ export async function init() {
     await devAuth.authStateReady();
     if (dev && dev.status === 'active' && devAuth.currentUser?.uid === dev.uid) {
       S.device = dev;
+      S.mode = 'device'; // må settes før kunden åpnes, ellers starter ikke LAN-signaleringen
       await openTenant(dev.tenantId, dev.tenantName);
-      S.mode = 'device';
       startDeviceWatch();
     } else if (dev && devAuth.currentUser?.uid === dev.uid && dev.status === 'pending') {
       S.pairing = { uid: dev.uid };
@@ -147,8 +147,8 @@ async function activateDevice(uid, d) {
   S.device = { uid, tenantId: d.tenantId, name: d.name, status: 'active', tenantName: name };
   await idb.kvSet('device', S.device);
   await idb.kvDel('demo');
+  S.mode = 'device'; // må settes før kunden åpnes, ellers starter ikke LAN-signaleringen
   await openTenant(d.tenantId, name);
-  S.mode = 'device';
   startDeviceWatch();
   log('device', 'Enheten er godkjent', { t: d.tenantId });
   emit();

@@ -51,6 +51,8 @@ Kilde: Firebase-dokumentasjonen «Add TOTP multi-factor authentication to your w
 
 Reglene ligger i `firebase/firestore.rules` i repoet og er testet automatisk (27 tester mot Firestore-emulatoren).
 
+Viktig: Reglene ble utvidet 14. november 2026 med tre nye samlinger (gjødsling, kjøpere og leveranser). Har du publisert reglene før dette, må du lime inn og publisere dem på nytt. Til det er gjort, virker alt annet som før, men gjødsling og leveranser blir liggende på enheten og synkes ikke.
+
 Enkleste måte, i konsollet:
 
 1. Åpne https://console.firebase.google.com/project/tryggdigital-3f5a9/firestore/rules

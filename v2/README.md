@@ -27,7 +27,8 @@ npm install
 npm run serve          # http://127.0.0.1:8000/v2/
 npm run test:unit      # enhetstester
 npm run test:rules     # Firestore-regler mot emulatoren (krever Java)
-npm run test:e2e       # nettlesertester (Playwright)
+npm run test:e2e       # nettlesertester (Playwright), også hele appen uten nett
+npm run test:sync      # synk mellom enheter: server, lokalt nett uten internett, konflikt, stenging (emulator)
 npm run vendor         # bygg biblioteker i v2/vendor og service worker på nytt
 npm run build:sw       # bare service worker (kjør etter hver endring i v2/)
 ```

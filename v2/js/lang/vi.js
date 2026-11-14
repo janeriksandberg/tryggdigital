@@ -62,4 +62,9 @@ export default {
   'pv.rights.h': 'Quyền của bạn', 'pv.rights.p': 'Bạn có thể yêu cầu xem, sửa và xóa thông tin (khi không bắt buộc phải lưu), và nhận lại thông tin của mình. Hãy liên hệ chủ lao động. Bạn cũng có thể khiếu nại với Cơ quan Bảo vệ Dữ liệu Na Uy (Datatilsynet).',
   'pv.card.h': 'Thẻ QR của bạn', 'pv.card.p': 'Thẻ là cá nhân. Không cho người khác mượn. Nếu làm mất, hãy báo ngay để thẻ bị khóa và bạn nhận thẻ mới.',
   'pv.extra.h': 'Thông tin thêm từ chủ lao động',
+  "picker.break": "Nghỉ giải lao",
+  "picker.breakStarted": "Nghỉ ngơi vui vẻ, {name}!",
+  "picker.breakHelp": "Quét thẻ khi bạn quay lại.",
+  "picker.breakOver": "Chào mừng trở lại, {name}!",
+  "picker.breakLasted": "Bạn đã nghỉ {min} phút.",
 };

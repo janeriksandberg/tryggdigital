@@ -62,4 +62,9 @@ export default {
   'pv.rights.h': 'Twoje prawa', 'pv.rights.p': 'Możesz poprosić o dostęp do danych, ich sprostowanie i usunięcie (gdy nie muszą być przechowywane) oraz o ich przekazanie. Skontaktuj się z pracodawcą. Możesz też złożyć skargę do norweskiego organu ochrony danych (Datatilsynet).',
   'pv.card.h': 'Twoja karta QR', 'pv.card.p': 'Karta jest osobista. Nie pożyczaj jej nikomu. Jeśli ją zgubisz, zgłoś to od razu – zostanie zablokowana, a Ty dostaniesz nową.',
   'pv.extra.h': 'Więcej od pracodawcy',
+  "picker.break": "Przerwa",
+  "picker.breakStarted": "Miłej przerwy, {name}!",
+  "picker.breakHelp": "Zeskanuj kartę po powrocie.",
+  "picker.breakOver": "Witaj z powrotem, {name}!",
+  "picker.breakLasted": "Przerwa trwała {min} min.",
 };

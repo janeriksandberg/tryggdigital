@@ -10,9 +10,23 @@ export function shiftYear(key, n) { const [y, m, d] = key.split('-').map(Number)
 export const num = (v) => { const x = Number(String(v ?? '').replace(',', '.')); return Number.isFinite(x) ? x : 0; };
 export const round = (v, d = 2) => Math.round(v * 10 ** d) / 10 ** d;
 
-export function shiftHours(s, now = new Date()) {
+/** Ubetalt pause i timer: avsluttede pauser (breakMin) pluss en pause som pågår (breakStart). */
+export function breakHours(s, now = new Date()) {
+  let ms = num(s.breakMin) * 60000;
+  if (s.breakStart) ms += Math.max(0, (s.end ? new Date(s.end) : now) - new Date(s.breakStart));
+  return ms / 3600000;
+}
+/** Arbeidstid i timer. Pauser trekkes fra, med mindre gården har valgt at pauser er betalt (paidBreaks). */
+export function shiftHours(s, now = new Date(), paidBreaks = false) {
   const end = s.end ? new Date(s.end) : now;
-  return Math.max(0, (end - new Date(s.start)) / 3600000);
+  const gross = Math.max(0, (end - new Date(s.start)) / 3600000);
+  return paidBreaks ? gross : Math.max(0, gross - breakHours(s, now));
+}
+/** Avslutter en pågående pause: gir feltene som skal lagres på vakten. */
+export function endBreakPatch(s, now = new Date()) {
+  if (!s.breakStart) return null;
+  const min = Math.max(0, Math.round((now - new Date(s.breakStart)) / 60000));
+  return { breakStart: null, breakMin: num(s.breakMin) + min, lastBreakMin: min };
 }
 
 // ---------- Satser ----------
@@ -45,7 +59,7 @@ export function dailyStats(db, fromKey, toKey, now = new Date()) {
     const k = dayKey(s.start);
     if (!inRange(k)) continue;
     const e = slot(s.personId, k);
-    e.hours += shiftHours(s, now);
+    e.hours += shiftHours(s, now, !!db.settings?.paidBreaks);
     if (!s.end) e.open = true;
   }
   for (const c of db.crates || []) {
@@ -225,6 +239,54 @@ export function personSummary(db, personId, now = new Date()) {
   let streak = 0;
   let k = perDay[today] ? today : addDays(today, -1);
   while (perDay[k]) { streak++; k = addDays(k, -1); }
-  const todayHours = (db.shifts || []).filter((s) => s.personId === personId && dayKey(s.start) === today).reduce((a, s) => a + shiftHours(s, now), 0);
+  const todayHours = (db.shifts || []).filter((s) => s.personId === personId && dayKey(s.start) === today).reduce((a, s) => a + shiftHours(s, now, !!db.settings?.paidBreaks), 0);
   return { todayCrates, pastBest, total, streak, todayHours };
+}
+
+// ---------- Gjødsling ----------
+/** Sum næringsstoff (kg) per jorde for en periode: { [fieldId]: { n, p, k, areaDaa, count } } */
+export function nutrientTotals(db, fromKey, toKey) {
+  const out = {};
+  for (const f of db.fertilizations || []) {
+    if (!f.date || (fromKey && f.date < fromKey) || (toKey && f.date > toKey)) continue;
+    const o = (out[f.fieldId || ''] ??= { n: 0, p: 0, k: 0, count: 0 });
+    const area = num(f.areaDaa);
+    o.n += num(f.nPerDaa) * area; o.p += num(f.pPerDaa) * area; o.k += num(f.kPerDaa) * area; o.count++;
+  }
+  for (const o of Object.values(out)) { o.n = round(o.n, 1); o.p = round(o.p, 1); o.k = round(o.k, 1); }
+  return out;
+}
+/** Næringsstoff per dekar fra mengde per dekar og innhold i prosent (mineralgjødsel) eller kg per tonn/m³ (husdyrgjødsel). */
+export function nutrientPerDaa(amountPerDaa, content, basis = 'pct') {
+  const a = num(amountPerDaa), c = num(content);
+  return round(basis === 'pct' ? a * c / 100 : a * c, 2);
+}
+
+// ---------- Leveranser ----------
+export function deliveryTotals(d) {
+  let kg = 0, crates = 0, value = 0;
+  for (const l of d.lines || []) { kg += num(l.kg); crates += num(l.crates); value += num(l.kg) * num(l.pricePerKg); }
+  return { kg: round(kg, 1), crates, value: round(value, 2) };
+}
+/** Neste ledige følgeseddelnummer for året: «2026-0007». */
+export function nextDeliveryNo(deliveries, year) {
+  let max = 0;
+  for (const d of deliveries || []) { const m = String(d.no || '').match(/^(\d{4})-(\d+)$/); if (m && Number(m[1]) === Number(year)) max = Math.max(max, Number(m[2])); }
+  return `${year}-${String(max + 1).padStart(4, '0')}`;
+}
+
+// ---------- Vær: frost og sprøyteforhold fra MET-varselet ----------
+/** Sammendrag av varselet de neste timene: laveste temperatur, frosttimer og timer med gode sprøyteforhold. */
+export function weatherOutlook(json, now = new Date(), hours = 48, limits = { maxWind: 3, maxPrecip: 0.1 }) {
+  const series = (json?.properties?.timeseries || []).filter((s) => { const d = new Date(s.time) - now; return d >= -3600000 && d <= hours * 3600000; });
+  if (!series.length) return null;
+  let min = null; const frost = []; const spray = [];
+  for (const s of series) {
+    const det = s.data?.instant?.details || {};
+    const tC = det.air_temperature;
+    if (typeof tC === 'number') { if (!min || tC < min.temp) min = { temp: tC, time: s.time }; if (tC <= 0) frost.push(s.time); }
+    const pr = s.data?.next_1_hours?.details?.precipitation_amount;
+    if (typeof det.wind_speed === 'number' && typeof pr === 'number' && det.wind_speed <= limits.maxWind && pr <= limits.maxPrecip && typeof tC === 'number' && tC > 0) spray.push(s.time);
+  }
+  return { min, frostHours: frost.length, firstFrost: frost[0] || null, sprayHours: spray.length, nextSpray: spray[0] || null, hours, updated: json?.properties?.meta?.updated_at || null };
 }

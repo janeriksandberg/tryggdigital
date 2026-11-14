@@ -116,7 +116,7 @@ test('kort som er sperret eller fra feil gård avvises', async ({ page }) => {
 
 test('alle administrasjonssider vises uten feil og uten manglende tekster', async ({ page }) => {
   const errors = await startDemo(page);
-  for (const pg of ['overview', 'today', 'registrations', 'pay', 'spraying', 'products', 'trace', 'reports', 'people', 'fields', 'crops', 'devices', 'settings']) {
+  for (const pg of ['overview', 'today', 'registrations', 'pay', 'spraying', 'products', 'fertilizer', 'trace', 'deliveries', 'reports', 'people', 'fields', 'crops', 'devices', 'settings']) {
     await page.goto(`/v2/#/admin/${pg}`);
     if (pg === 'overview') await acceptPrivacyIfAsked(page);
     await page.waitForFunction((id) => document.querySelector('.nav-link.on')?.dataset.nav === id && !!document.querySelector('.admin-main h1'), pg);
@@ -330,7 +330,7 @@ test('alle «ny»-skjemaer i administrasjonen har felt under hver overskrift', a
   const forms = [
     ['fields', '[data-act=add-field]'], ['people', '[data-act=add-person]'], ['crops', '[data-act=add-variety]'], ['crops', '[data-act=add-cratetype]'],
     ['products', '[data-act=add-product]'], ['products', '[data-act=purchase]'], ['spraying', '[data-act=new-task]'], ['trace', '[data-act=new-pallet]'],
-    ['registrations', '[data-act=add-registration]'],
+    ['registrations', '[data-act=add-registration]'], ['fertilizer', '[data-act=new-fert]'], ['deliveries', '[data-act=add-buyer]'], ['deliveries', '[data-act=new-delivery]'],
   ];
   let first = true;
   for (const [pg, sel] of forms) {
@@ -352,4 +352,189 @@ test('versjonsmerket i appen stemmer med service worker-versjonen', async ({ pag
   await page.goto('/v2/#/admin/overview');
   await acceptPrivacyIfAsked(page);
   await expect(page.locator('.sidebar [data-version]')).toHaveAttribute('data-version', id);
+});
+
+test('pause: plukker tar pause, skanner seg tilbake, og pausen trekkes fra timene @mobil', async ({ page }) => {
+  const errors = await startDemo(page);
+  const token = await tokenFor(page, 'Anna Kowalska');
+  await page.click('[data-act=scan]');
+  await scanCode(page, token);
+  await acceptPrivacyIfAsked(page);
+  await expect(page.locator('[data-flow=crate]')).toBeVisible({ timeout: 15000 });
+  await page.click('[data-act=break]');
+  await expect(page.locator('.big-result')).toBeVisible();
+  const open = () => page.evaluate(async () => { const s = await import('/v2/js/core/store.js'); const p = s.all('people').find((x) => x.name === 'Anna Kowalska'); return s.all('shifts').find((x) => x.personId === p.id && !x.end); });
+  expect((await open()).breakStart).toBeTruthy();
+  // Lat som pausen startet for 20 minutter siden
+  await page.evaluate(async () => { const s = await import('/v2/js/core/store.js'); const p = s.all('people').find((x) => x.name === 'Anna Kowalska'); const sh = s.all('shifts').find((x) => x.personId === p.id && !x.end); s.patch('shifts', sh.id, { breakStart: new Date(Date.now() - 20 * 60000).toISOString() }); });
+  await expect(page.locator('[data-act=scan]')).toBeVisible({ timeout: 10000 });
+  await page.click('[data-act=scan]');
+  await scanCode(page, token);
+  await expect(page.locator('[data-flow=crate]')).toBeVisible({ timeout: 15000 });
+  const after = await open();
+  expect(after.breakStart).toBeNull();
+  expect(after.breakMin).toBe(20);
+  expect(errors).toEqual([]);
+});
+
+test('gjødslingsjournal: ny gjødsling regner ut næring, og gjødselslaget huskes', async ({ page }) => {
+  const errors = await startDemo(page);
+  await page.goto('/v2/#/admin/fertilizer');
+  await acceptPrivacyIfAsked(page);
+  await expect(page.locator('[data-fert] tbody tr')).toHaveCount(1);
+  await page.click('[data-act=new-fert]');
+  await expectAllFieldsHaveControls(page);
+  const modal = page.locator('.modal');
+  await modal.locator('input[name=product]').fill('Testgjødsel 10-5-20');
+  await modal.locator('input[name=amount]').fill('40');
+  await modal.locator('input[name=nContent]').fill('10');
+  await modal.locator('input[name=pContent]').fill('5');
+  await modal.locator('input[name=kContent]').fill('20');
+  await expect(modal.locator('[data-fert-result]')).toContainText('4 kg N, 2 kg P og 8 kg K');
+  await modal.getByRole('button', { name: 'Lagre' }).click();
+  await expect(modal).toBeHidden();
+  await expect(page.locator('[data-fert] tbody tr')).toHaveCount(2);
+  const f = await page.evaluate(async () => (await import('/v2/js/core/store.js')).all('fertilizations').find((x) => x.product === 'Testgjødsel 10-5-20'));
+  expect(f).toMatchObject({ amount: 40, unit: 'kg/daa', nPerDaa: 4, pPerDaa: 2, kPerDaa: 8, kind: 'mineral' });
+  expect(f.areaDaa).toBeGreaterThan(0);
+  // Neste gang: velg samme gjødselslag, innholdet fylles inn
+  await page.click('[data-act=new-fert]');
+  await modal.locator('input[name=product]').fill('Testgjødsel 10-5-20');
+  await modal.locator('input[name=product]').blur();
+  await expect(modal.locator('input[name=kContent]')).toHaveValue('20');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('[data-fert-totals] tbody tr')).toHaveCount(2);
+  expect(errors).toEqual([]);
+});
+
+test('leveranse: kjøper hentes fra Enhetsregisteret, pall legges på følgeseddel og kan ikke brukes to ganger', async ({ page }) => {
+  const errors = await startDemo(page);
+  await page.route(/data\.brreg\.no/, (r) => r.fulfill({ status: 200, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' }, body: JSON.stringify({ organisasjonsnummer: '974760673', navn: 'TESTKJØPER AS', forretningsadresse: { adresse: ['Havnegata 48'], postnummer: '8900', poststed: 'BRØNNØYSUND', kommune: 'BRØNNØY' } }) }));
+  // En pall å levere
+  await page.goto('/v2/#/admin/trace');
+  await acceptPrivacyIfAsked(page);
+  await page.evaluate(() => { window.print = () => {}; });
+  await page.click('[data-act=new-pallet]');
+  await page.locator('.modal input[name=count]').fill('3');
+  await page.locator('.modal').getByRole('button', { name: 'Opprett og skriv ut' }).click();
+  await page.keyboard.press('Escape');
+  await page.goto('/v2/#/admin/deliveries');
+  await page.click('[data-act=add-buyer]');
+  await expectAllFieldsHaveControls(page);
+  const modal = page.locator('.modal');
+  await modal.locator('input[name=buyerOrgNo]').fill('974 760 674');
+  await modal.locator('[data-act=org-lookup]').click();
+  await expect(modal.locator('[data-org-status]')).toContainText('Ikke et gyldig');
+  await modal.locator('input[name=buyerOrgNo]').fill('974 760 673');
+  await modal.locator('[data-act=org-lookup]').click();
+  await expect(modal.locator('input[name=buyerName]')).toHaveValue('TESTKJØPER AS');
+  await expect(modal.locator('input[name=buyerAddress]')).toHaveValue('Havnegata 48, 8900 BRØNNØYSUND');
+  await modal.getByRole('button', { name: 'Lagre' }).click();
+  await expect(modal).toBeHidden();
+  await page.click('[data-act=new-delivery]');
+  await modal.locator('select[name=buyer]').selectOption({ label: 'TESTKJØPER AS' });
+  await modal.locator('[data-pallet]').first().click();
+  await expect(modal.locator('[data-pallet]')).toHaveCount(0);
+  await modal.locator('input[name=kg0]').fill('15');
+  await modal.locator('input[name=price]').fill('60');
+  await expect(modal.locator('[data-sum]')).toContainText('15 kg');
+  await expect(modal.locator('[data-sum]')).toContainText('900');
+  await modal.getByRole('button', { name: 'Lagre og skriv ut' }).click();
+  await expect(modal).toBeHidden();
+  await expect(page.locator('[data-deliveries] tbody tr')).toHaveCount(1);
+  await expect(page.locator('#print-area [data-delivery-note]')).toContainText('TESTKJØPER AS');
+  const d = await page.evaluate(async () => (await import('/v2/js/core/store.js')).all('deliveries')[0]);
+  expect(d.no).toMatch(/^\d{4}-0001$/);
+  expect(d.lines[0]).toMatchObject({ kg: 15, pricePerKg: 60, crates: 3 });
+  // Pallen er brukt og tilbys ikke på en ny leveranse
+  await page.click('[data-act=new-delivery]');
+  await expect(modal.locator('[data-pallet]')).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('[data-dummy=ehf]')).toBeDisabled();
+  expect(errors).toEqual([]);
+});
+
+test('innstillinger: gårdsnavn og adresse hentes fra Enhetsregisteret, og uten nett går det fint å taste selv', async ({ page }) => {
+  const errors = await startDemo(page);
+  let fail = true;
+  await page.route(/data\.brreg\.no/, (r) => (fail ? r.abort() : r.fulfill({ status: 200, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' }, body: JSON.stringify({ organisasjonsnummer: '974760673', navn: 'BÆRGÅRDEN AS', forretningsadresse: { adresse: ['Bærveien 2'], postnummer: '3400', poststed: 'LIER' } }) })));
+  await page.evaluate(async () => { const s = await import('/v2/js/core/store.js'); s.put('settings', { ...s.settings(), farmName: '', address: '' }); });
+  await page.goto('/v2/#/admin/settings');
+  await acceptPrivacyIfAsked(page);
+  await page.locator('input[name=orgNo]').fill('974760673');
+  await page.locator('[data-act=org-lookup]').click();
+  await expect(page.locator('[data-org-status]')).toContainText('Fikk ikke kontakt');
+  fail = false;
+  await page.locator('[data-act=org-lookup]').click();
+  await expect(page.locator('input[name=farmName]')).toHaveValue('BÆRGÅRDEN AS');
+  await expect(page.locator('input[name=address]')).toHaveValue('Bærveien 2, 3400 LIER');
+  // Minstelønn: varsel på lønnssiden når noen ligger under
+  await page.locator('input[name=minHourRate]').fill('250');
+  await page.locator('input[name=minHourRate]').blur();
+  await page.goto('/v2/#/admin/pay');
+  await acceptPrivacyIfAsked(page); // gårdsopplysningene står i personvernerklæringen, så den vises på nytt
+  await expect(page.locator('[data-below-min]')).toBeVisible();
+  await page.goto('/v2/#/admin/spraying');
+  await expect(page.locator('[data-dummy=mattilsynet]')).toBeDisabled();
+  expect(errors.filter((e) => !/brreg/.test(e))).toEqual([]);
+});
+
+test('jorder: adressesøk flytter kartet, og oversikten varsler frost', async ({ page }) => {
+  const errors = await startDemo(page);
+  await page.route(/ws\.geonorge\.no/, (r) => r.fulfill({ status: 200, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' }, body: JSON.stringify({ adresser: [{ adressetekst: 'Havnegata 48', postnummer: '8900', poststed: 'BRØNNØYSUND', kommunenavn: 'BRØNNØY', representasjonspunkt: { epsg: 'EPSG:4258', lat: 65.4764, lon: 12.2126 } }] }) }));
+  const now = Date.now();
+  const step = (h, temp) => ({ time: new Date(now + h * 3600000).toISOString(), data: { instant: { details: { air_temperature: temp, wind_speed: 1.5 } }, next_1_hours: { details: { precipitation_amount: 0 } } } });
+  await page.route(/api\.met\.no/, (r) => r.fulfill({ status: 200, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' }, body: JSON.stringify({ properties: { meta: { updated_at: new Date().toISOString() }, timeseries: [step(0, 5), step(8, -2), step(9, -1), step(12, 6)] } }) }));
+  await page.goto('/v2/#/admin/overview');
+  await acceptPrivacyIfAsked(page);
+  await expect(page.locator('[data-outlook] [data-frost]')).toBeVisible();
+  await expect(page.locator('[data-outlook]')).toContainText('−2');
+  await page.goto('/v2/#/admin/fields');
+  await page.locator('input[name=address-search]').fill('Havnegata 48');
+  await page.click('[data-act=address-search]');
+  await page.locator('.addr-hit').first().click();
+  await expect.poll(() => page.evaluate(() => { const m = document.querySelector('.big-map')._leaflet_map_ref; return m ? Math.round(m.getCenter().lat * 10) / 10 : null; })).toBe(65.5);
+  expect(errors).toEqual([]);
+});
+
+test('offline: hele appen virker uten nett, også etter omstart, og alle sider og språk er lagret på enheten', async ({ page, context }) => {
+  const errors = await startDemo(page);
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller), { timeout: 20000 }).toBe(true);
+  const token = await tokenFor(page, 'Anna Kowalska');
+  const people = await dbCount(page, 'people');
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.locator('[data-act=scan]')).toBeVisible({ timeout: 15000 });
+  await expect.poll(() => dbCount(page, 'people'), { timeout: 15000 }).toBe(people);
+  // Plukker på polsk (språkfilen må komme fra enheten): personvern, så levere kasser
+  const before = await dbCount(page, 'crates');
+  await page.click('[data-act=crate]');
+  await scanCode(page, token);
+  await expect(page.locator('.modal')).toContainText('Prywatność', { timeout: 10000 });
+  await page.click('[data-act=accept-privacy]');
+  await expect(page.locator('[data-flow=crate]')).toBeVisible({ timeout: 15000 });
+  await page.click('[data-act=register]');
+  await expect.poll(() => dbCount(page, 'crates')).toBe(before + 1);
+  await expect(page.locator('.big-result')).toHaveCount(0, { timeout: 15000 });
+  await expect(page.locator('html')).toHaveAttribute('lang', 'nb');
+  // Alle administrasjonssider lastes fra enheten
+  for (const pg of ['overview', 'today', 'registrations', 'pay', 'spraying', 'products', 'fertilizer', 'trace', 'deliveries', 'reports', 'people', 'fields', 'crops', 'devices', 'settings']) {
+    await page.goto(`/v2/#/admin/${pg}`);
+    if (pg === 'overview') await acceptPrivacyIfAsked(page);
+    await expect(page.locator(`.nav-link.on[data-nav=${pg}]`), `siden ${pg} uten nett`).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.admin-main h1'), `siden ${pg} uten nett`).toBeVisible({ timeout: 10000 });
+  }
+  // Ny gjødsling uten nett, så full omstart uten nett: alt er der
+  await page.goto('/v2/#/admin/fertilizer');
+  await page.click('[data-act=new-fert]');
+  await page.locator('.modal input[name=product]').fill('Offline-gjødsel');
+  await page.locator('.modal input[name=amount]').fill('10');
+  await page.locator('.modal').getByRole('button', { name: 'Lagre' }).click();
+  await expect(page.locator('.modal')).toBeHidden();
+  await page.reload();
+  await expect(page.locator('[data-fert-row="Offline-gjødsel"]')).toBeVisible({ timeout: 15000 });
+  expect(await dbCount(page, 'crates')).toBe(before + 1);
+  await context.setOffline(false);
+  expect(errors.filter((e) => !/ERR_INTERNET_DISCONNECTED|Failed to fetch|NetworkError/.test(e))).toEqual([]);
 });

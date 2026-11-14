@@ -8,6 +8,7 @@ import { CROPS, cropName } from '../../core/crops.js';
 import { baseMap, fitToFields, fieldStyle, mapAvailable } from '../../map.js';
 import { pageHead } from './index.js';
 import { actor } from '../shared.js';
+import { searchAddress, ADDRESS_CREDIT } from '../../core/registers.js';
 
 const COLORS = ['#d6264f', '#157a52', '#1d4ed8', '#b45309', '#7c3aed', '#0e7490', '#be185d', '#4d7c0f'];
 let map = null;
@@ -37,8 +38,28 @@ export function render(ctx) {
       h('button', { class: 'btn light', 'data-act': 'add-field', onclick: () => editInfo(null) }, icon('plus', 18), t('fields.addNoMap')),
       mapAvailable() ? h('button', { class: 'btn primary', onclick: () => startDraw() }, icon('edit', 18), t('fields.draw')) : null),
     h('div', { class: 'fields-layout' },
-      h('div', { class: 'map-wrap' }, mapEl, editBar),
+      h('div', { class: 'map-wrap' }, mapAvailable() ? addressSearch() : null, mapEl, editBar),
       h('div', { class: 'card' }, h('h3', {}, t('fields.list')), h('p', { class: 'muted small' }, t('fields.help')), list)));
+
+  // Finn gården i kartet med adressesøk (Kartverket), så slipper man å lete seg fram
+  function addressSearch() {
+    const q = input({ type: 'search', name: 'address-search', placeholder: t('fields.findAddress'), 'aria-label': t('fields.findAddress'), autocomplete: 'off' });
+    const out = h('div', { class: 'addr-results', hidden: true });
+    let marker = null;
+    const run = async () => {
+      if (q.value.trim().length < 3) return;
+      out.hidden = false; out.replaceChildren(h('span', { class: 'small muted' }, t('reg.searching')));
+      try {
+        const hits = await searchAddress(q.value);
+        out.replaceChildren(...(hits.length ? [...hits.map((a) => h('button', { type: 'button', class: 'addr-hit', onclick: () => {
+          out.hidden = true; q.value = a.text;
+          map.setView([a.lat, a.lon], 16);
+          marker?.remove(); marker = L.circleMarker([a.lat, a.lon], { radius: 8, color: '#fff', weight: 3, fillColor: '#1d4ed8', fillOpacity: 1 }).addTo(map);
+        } }, h('strong', {}, a.text), ' ', h('span', { class: 'small muted' }, a.municipality))), h('span', { class: 'small muted' }, ADDRESS_CREDIT)] : [h('span', { class: 'small muted' }, t('fields.addressNone'))]));
+      } catch { out.replaceChildren(h('span', { class: 'small muted' }, t('reg.offline'))); }
+    };
+    return h('form', { class: 'addr-search', role: 'search', onsubmit: (e) => { e.preventDefault(); run(); } }, h('div', { class: 'row' }, h('div', { class: 'grow' }, q), h('button', { class: 'btn light', type: 'submit', 'data-act': 'address-search' }, icon('search', 18), t('common.search'))), out);
+  }
 
   const drawAll = () => {
     if (!group) return;
@@ -143,6 +164,7 @@ export function render(ctx) {
   if (mapAvailable()) requestAnimationFrame(() => {
     if (!mapEl.isConnected) return;
     map = baseMap(mapEl);
+    mapEl._leaflet_map_ref = map;
     group = L.featureGroup().addTo(map);
     map.pm.setLang?.('no');
     map.on('pm:create', async (e) => {

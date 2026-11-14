@@ -16,18 +16,34 @@ Sist oppdatert: 14. november 2026.
 |---|---|---|---|
 | Profesjonelle brukere skal føre journal over bruk av plantevernmidler | Sprøytejournal per jorde: dato, start- og sluttid, middel, dose, areal, formål, utstyr, vær og hvem som sprøytet. Utskrift og CSV. | Forskrift om plantevernmidler (FOR-2015-05-06-455), https://lovdata.no/forskrift/2015-05-06-455. Mattilsynets veileder: https://www.mattilsynet.no/planter-og-dyrking/plantevernmidler/veileder-til-forskrift-om-plantevernmidler/journalforing-ved-bruk-av-plantevernmidler/krav-til-sproytejournalen | Funnet, ikke lest. Kontroller hvilke felt og hvor lang oppbevaringstid som kreves. |
 | EU: elektronisk, maskinlesbar journal med middel og godkjenningsnummer, dato, dose, sted og areal, kultur (EPPO-kode) | Lagrer reg.nr., dose per areal, areal i daa, jordet som polygon (GeoJSON), kultur med EPPO-kode. | Forordning (EU) 2023/564, vedlegg. https://eur-lex.europa.eu/eli/reg/2023/564/oj | Lest (13.11.2026). Utsettelse til 1.1.2027 i EU er funnet tidligere, men er ikke lest på nytt i dag. |
-| Gjelder dette i Norge fra 2027? | Appen er klar for det, men knappen «Send til myndighetene» er ikke koblet til noe ennå. | Europalov: https://europalov.no/rettsakt/plantevernmiddelforordningen-endringsbestemmelser-om-elektronisk-format-av-registre-over/id-34150 og EØS-notat: https://www.regjeringen.no/no/sub/eos-notatbasen/notatene/2022/jan/elektronisk-sproytejournal/id3171409/ | Ikke bekreftet. Per 13.11.2026 sto rettsakten som «under vurdering» for EØS. Mattilsynet har hatt en høring om krav til elektronisk sprøytejournal: https://www.mattilsynet.no/hoeringer?bId=4000 |
+| Gjelder dette i Norge fra 2027? | Appen er klar for det, men knappen «Send til Mattilsynet» i sprøytejournalen er bare en plassholder og er ikke koblet til noe ennå. | Europalov: https://europalov.no/rettsakt/plantevernmiddelforordningen-endringsbestemmelser-om-elektronisk-format-av-registre-over/id-34150 og EØS-notat: https://www.regjeringen.no/no/sub/eos-notatbasen/notatene/2022/jan/elektronisk-sproytejournal/id3171409/ | Ikke bekreftet. Per 13.11.2026 sto rettsakten som «under vurdering» for EØS. Mattilsynet har hatt en høring om krav til elektronisk sprøytejournal: https://www.mattilsynet.no/hoeringer?bId=4000 |
 | Mattilsynets format for innlesing | Feltene appen lagrer er valgt slik at de kan mappes til dette formatet (areal i daa, EPPO-koder, GeoJSON i EPSG:4326, startTid, middel). Organisasjonsnummer for eier legges inn under Innstillinger. | https://github.com/Mattilsynet/plantevernjournal-innlesing-api | Lest (13.11.2026). |
 | Karenstid (tid fra sprøyting til høsting) | Beregner tidligste høstedato per jorde, sperrer eller varsler ved kasseregistrering og varsler formann. | Karenstid står på etiketten til hvert middel. Appen har ikke en offisiell, åpen kilde for preparatregisteret, så administrator legger inn karenstid selv. | Brukeren må kontrollere verdiene mot etiketten. |
 | Lager av plantevernmidler | Beholdning trekkes automatisk fra sprøytejournalen; innkjøp og telling registreres. | Mattilsynets veileder om oppbevaring: https://www.mattilsynet.no/planter-og-dyrking/plantevernmidler/veileder-til-forskrift-om-plantevernmidler/oppbevaring-og-rester | Funnet, ikke lest. Appen er en hjelp til oversikt, ikke en kontroll av lagringskrav. |
+
+
+## Gjødsling
+
+| Krav | Hva appen gjør | Kilde | Status |
+|---|---|---|---|
+| Gjødslingsjournal (nye krav fra 2026 i gjødselbrukforskriften) | Gjødslingsjournal per jorde: dato, areal, gjødselslag og type, mengde per dekar, N-P-K per dekar, metode og hvem som utførte. Sum N, P og K per jorde per år. Utskrift og CSV. | Statsforvalteren: https://www.statsforvalteren.no/agder/landbruk-og-mat/jordbruk/krav-om-gjodseljournal-fra-2026/ og https://www.statsforvalteren.no/nb/vestland/landbruk-og-mat/miljotiltak-i-jordbruket/gjodsel-og-pressaft/nye-krav-til-gjodslingsplan-og-gjodseljournal-fra-2026/ | Funnet, ikke lest (sidene kunne ikke åpnes fra arbeidsmiljøet 14.11.2026). Feltene er valgt ut fra vanlig praksis, ikke fra forskriftsteksten. Kontroller hvilke felt som kreves, og om gjødslingsplan også kreves for gården. Appen lager ikke gjødslingsplan. |
+
+
+## Åpne registre som appen henter fra
+
+| Register | Hva appen bruker det til | Kilde | Status |
+|---|---|---|---|
+| Enhetsregisteret (Brønnøysundregistrene) | Navn og adresse fra organisasjonsnummer, for gården (Innstillinger) og for kjøpere (Leveranser). Bare organisasjonsnummeret sendes. | https://data.brreg.no/enhetsregisteret/api/dokumentasjon/no/index.html | Ikke lest: dokumentasjonen og API-et kunne ikke åpnes fra arbeidsmiljøet. Feltnavnene (navn, forretningsadresse) er derfor ikke kontrollert mot et ekte svar, og oppslaget er bare testet mot et etterlignet svar. Virker det ikke, taster brukeren inn selv. |
+| Kartverkets adresse-API | Adressesøk som flytter kartet til gården når jorder skal tegnes. Bare søketeksten sendes. | https://ws.geonorge.no/adresser/v1/ | Svarformatet er kontrollert mot et ekte svar 14.11.2026. Lisens og vilkår er ikke lest. Om nettlesere får lov til å hente direkte (CORS) er ikke kontrollert. |
+| MET Norge | Vær ved sprøyting, og frost- og sprøytevarsel for 48 timer på oversikten. | Se «Vær fra MET» under. | Lest 14.11.2026. |
 
 
 ## Arbeidstid og lønn
 
 | Krav | Hva appen gjør | Kilde | Status |
 |---|---|---|---|
-| Arbeidsgiver skal ha oversikt over hvor mye den enkelte har arbeidet | Inn- og utstempling per person, retting med logg over hvem som endret, eksport av arbeidstid (CSV). | Arbeidsmiljøloven § 10-7. https://lovdata.no/lov/2005-06-17-62/§10-7 og Arbeidstilsynets utgave av kapittel 10: https://www.arbeidstilsynet.no/regelverk/lover/arbeidsmiljoloven/10 | Funnet, ikke lest i dag. |
-| Minstelønn i jordbruks- og gartnerinæringene | Appen viser timelønn og kasselønn per dag (det høyeste gjelder). Den kontrollerer ikke at satsene er over minstelønn. | Forskrift om allmenngjøring av tariffavtale for jordbruks- og gartnerinæringene: https://www.arbeidstilsynet.no/globalassets/regelverkspdfer/forskrift-om-allmenngjoring-av-tariffavtale-for-jordbruks--og-gartnerinaringene | Funnet, ikke lest. Gjeldende minstesats er ikke lagt inn i appen; sjekk den selv. |
+| Arbeidsgiver skal ha oversikt over hvor mye den enkelte har arbeidet | Inn- og utstempling per person, pauser (trekkes fra arbeidstiden, eller regnes som betalt hvis gården velger det), retting med logg over hvem som endret, eksport av arbeidstid (CSV). | Arbeidsmiljøloven § 10-7. https://lovdata.no/lov/2005-06-17-62/§10-7 og Arbeidstilsynets utgave av kapittel 10: https://www.arbeidstilsynet.no/regelverk/lover/arbeidsmiljoloven/10 | Funnet, ikke lest i dag. |
+| Minstelønn i jordbruks- og gartnerinæringene | Appen viser timelønn og kasselønn per dag (det høyeste gjelder). Gården kan selv legge inn gjeldende minstesats under Innstillinger; da varsler lønnssiden hvis noen har lavere timelønn. | Forskrift om allmenngjøring av tariffavtale for jordbruks- og gartnerinæringene: https://www.arbeidstilsynet.no/globalassets/regelverkspdfer/forskrift-om-allmenngjoring-av-tariffavtale-for-jordbruks--og-gartnerinaringene | Funnet, ikke lest. Gjeldende minstesats er ikke lagt inn i appen; sjekk den selv. |
 | Oppbevaring av regnskapsmateriale | Lønnsgrunnlag kan skrives ut og eksporteres. Selve lønnskjøringen skjer i lønnssystemet. | Bokføringsloven § 13: https://lovdata.no/lov/2004-11-19-73/§13. Skatteetaten om endring fra ti til fem år: https://www.skatteetaten.no/nn/rettskjelder/type/kunngjoringer/oppbevaringstiden-for-regnskapsmateriale-endres-fra-ti-ar-til-fem-ar/ | Funnet, ikke lest. Kontroller gjeldende oppbevaringstid. |
 
 
@@ -36,6 +52,7 @@ Sist oppdatert: 14. november 2026.
 | Krav | Hva appen gjør | Kilde | Status |
 |---|---|---|---|
 | Sporbarhet ett ledd bakover og ett ledd fremover for næringsmiddelvirksomheter | QR-etiketter på paller og kasser med jorde, dato og plukker; oppslag fra etikett til sprøytinger og karenstid. | Forordning (EF) 178/2002 artikkel 18: https://eur-lex.europa.eu/eli/reg/2002/178/oj | Dokumentet er bekreftet; artikkelteksten er ikke lest i dag. |
+| Sporbarhet ett ledd fremover | Leveranser: følgeseddel per kjøper med pallnummer, kasser og kg. En pall kan bare stå på én følgeseddel. | Som over. | Som over. Følgeseddelen er ikke en faktura. Knappen «Send til kjøper (EHF)» er en plassholder. |
 | GLOBALG.A.P. (sertifisering) | Revisjonsgrunnlag med jorder, midler, sprøytere, journal, lager, paller og varsler, som utskrift og CSV. | GLOBALG.A.P. IFA-standarden (krever innlogging/kjøp for full tekst). | Ikke lest. Revisjonsgrunnlaget er laget for å samle dokumentasjon, ikke for å dekke alle kontrollpunkter. |
 
 

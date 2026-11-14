@@ -8,9 +8,12 @@ export const COLLECTIONS = {
   varieties: { admin: true },    // bærsorter
   crateTypes: { admin: true },   // kassetyper
   products: { admin: true },     // plantevernmidler kunden bruker (eget register)
+  buyers: { admin: true },       // kjøpere/mottakere av bær (grossist, butikk, mottak)
+  deliveries: { admin: true },   // leveranser til kjøper (følgeseddel)
   shifts: {},                    // inn- og utstempling
   crates: {},                    // kasseleveranser
   sprays: {},                    // sprøytejournal
+  fertilizations: {},            // gjødslingsjournal
   stock: {},                     // lagerbevegelser for plantevernmidler
   pallets: {},                   // paller/etiketter for sporbarhet
   consents: {},                  // personvernsamtykker (hvem, versjon, språk, tid)

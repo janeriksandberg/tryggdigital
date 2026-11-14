@@ -27,6 +27,7 @@ export function render(ctx) {
       h('select', { class: 'input', style: { width: 'auto' }, 'aria-label': t('common.year'), onchange: (e) => { year = Number(e.target.value); ctx.redraw(); } }, years.map((y) => h('option', { value: y, selected: y === year }, String(y)))),
       h('button', { class: 'btn light', onclick: () => exportCsv(list) }, icon('download', 18), 'CSV'),
       h('button', { class: 'btn light', onclick: () => printJournal(list, year) }, icon('printer', 18), t('common.print')),
+      h('button', { class: 'btn light', disabled: true, title: t('pay.tripletexSoon'), 'data-dummy': 'mattilsynet' }, icon('send', 18), t('spray.sendAuthority')),
       h('button', { class: 'btn primary', 'data-act': 'new-spray', onclick: () => { editing = 'new'; ctx.redraw(); } }, icon('plus', 18), t('spray.new'))),
     karens.length ? h('div', { class: 'notice warn' }, icon('hourglass'), h('p', {}, h('strong', {}, t('spray.activeKarens'), ': '), karens.map(({ f, k }) => `${f.name} (${t('spray.karensUntil', { date: fmtDate(k.allowedFrom) })})`).join(' · '))) : null,
     tasksCard(db, ctx),

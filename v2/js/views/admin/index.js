@@ -16,8 +16,10 @@ export const PAGES = [
   { group: 'nav.spraying' },
   { id: 'spraying', icon: 'tractor', key: 'nav.journal' },
   { id: 'products', icon: 'flask', key: 'nav.products' },
+  { id: 'fertilizer', icon: 'sprout', key: 'nav.fertilizer' },
   { group: 'nav.quality' },
   { id: 'trace', icon: 'tag', key: 'nav.trace' },
+  { id: 'deliveries', icon: 'truck', key: 'nav.deliveries' },
   { id: 'reports', icon: 'chart', key: 'nav.reports' },
   { group: 'nav.setup' },
   { id: 'people', icon: 'qr', key: 'nav.people' },
@@ -28,7 +30,7 @@ export const PAGES = [
 ];
 const LOADERS = {
   overview: () => import('./overview.js'), today: () => import('./today.js'), registrations: () => import('./registrations.js'), pay: () => import('./pay.js'),
-  spraying: () => import('./spraying.js'), products: () => import('./products.js'), trace: () => import('./trace.js'), reports: () => import('./reports.js'),
+  spraying: () => import('./spraying.js'), products: () => import('./products.js'), fertilizer: () => import('./fertilizer.js'), deliveries: () => import('./deliveries.js'), trace: () => import('./trace.js'), reports: () => import('./reports.js'),
   people: () => import('./people.js'), fields: () => import('./fields.js'), crops: () => import('./crops.js'), devices: () => import('./devices.js'), settings: () => import('./settings.js'),
 };
 

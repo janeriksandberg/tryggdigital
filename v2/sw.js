@@ -2,7 +2,7 @@
 // Omfang: bare /v2/. Appen lastes fra lokal buffer først, slik at den starter selv om GitHub Pages er nede
 // eller enheten er uten nett. Nye versjoner hentes i bakgrunnen og tas i bruk ved neste oppstart.
 // Bufrene heter «td2-…», og vi rører aldri bufrene til versjon 1.
-const VERSION = 'td2-edbc593c7f1f';
+const VERSION = 'td2-e9634bf6c09c';
 const FILES = [
  "./",
  "css/app.css",
@@ -25,6 +25,7 @@ const FILES = [
  "js/core/labels.js",
  "js/core/log.js",
  "js/core/qrauth.js",
+ "js/core/registers.js",
  "js/core/schema.js",
  "js/core/store.js",
  "js/core/weather.js",
@@ -48,7 +49,9 @@ const FILES = [
  "js/session.js",
  "js/ui.js",
  "js/views/admin/crops.js",
+ "js/views/admin/deliveries.js",
  "js/views/admin/devices.js",
+ "js/views/admin/fertilizer.js",
  "js/views/admin/fields.js",
  "js/views/admin/index.js",
  "js/views/admin/overview.js",

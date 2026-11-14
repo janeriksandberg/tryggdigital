@@ -498,3 +498,14 @@ table.data tfoot td { font-weight: 700; background: var(--surface-2); }
 .code-mask.complete .code-input { border-color: var(--brand-2); }
 .cam-switch { width: 100%; }
 .version-tag { font-size: .78rem; color: var(--muted, #6b7a72); font-variant-numeric: tabular-nums; }
+
+/* Adressesøk i kartet, varelinjer i leveranse, utskrift i to kolonner */
+.addr-search { margin-bottom: 8px; position: relative; }
+.addr-results { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; padding: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.addr-results[hidden] { display: none; }
+.addr-hit { all: unset; cursor: pointer; padding: 10px 8px; border-radius: 8px; min-height: 28px; }
+.addr-hit:hover, .addr-hit:focus-visible { background: var(--surface-3); }
+.line-row { align-items: end; padding: 8px; border: 1px solid var(--line); border-radius: 12px; }
+.mini-field { display: flex; flex-direction: column; gap: 2px; width: 92px; font-size: .8rem; color: var(--muted); }
+.print-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; }
+.print-doc .sign { border-top: 1px solid #000; padding-top: 2mm; }
