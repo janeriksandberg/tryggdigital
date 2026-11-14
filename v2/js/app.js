@@ -41,8 +41,8 @@ export function openLang(onPick) {
   const grid = h('div', { class: 'lang-grid' }, LANGS.map((l) => h('button', {
     type: 'button', class: `lang-option ${l.code === lang() ? 'on' : ''}`, lang: l.code, dir: l.dir || 'ltr',
     onclick: async () => { await setLang(l.code); document.querySelector('.modal-wrap')?.remove(); if (typeof onPick === 'function') onPick(l.code); else render(); },
-  }, h('strong', {}, l.name), h('small', {}, l.en))));
-  modal(t('lang.choose'), grid, [], { wide: true });
+  }, h('strong', {}, l.name), h('small', {}, l.en, l.scope === 'worker' ? ` · ${t('lang.workerOnly')}` : ''))));
+  modal(t('lang.choose'), h('div', { class: 'stack' }, grid, h('p', { class: 'small muted' }, t('lang.note'))), [], { wide: true });
 }
 
 export function topbar({ kind = 'kiosk', title, subtitle, actions = [] } = {}) {
@@ -69,17 +69,17 @@ export async function render() {
   if (rendering) { again = true; return; }
   rendering = true;
   try {
-    if (!S.ready) { clear(app).append(h('div', { class: 'boot' }, 'Tryggdigital …')); return; }
+    if (!S.ready) { clear(app, h('div', { class: 'boot' }, 'Tryggdigital …')); return; }
     const r = route();
     const view = await pickView(r);
     current?.destroy?.();
     current = view;
     const body = await view.render(r);
-    clear(app).append(...[].concat(view.topbar ? view.topbar() : topbar()), ...banners(), body);
+    clear(app, ...[].concat(view.topbar ? view.topbar() : topbar()), ...banners(), body);
     document.body.dataset.area = r.area || 'home';
   } catch (e) {
     log('error', 'Visning feilet', { msg: e.message, stack: String(e.stack).slice(0, 300) });
-    clear(app).append(topbar(), h('div', { class: 'center-page' }, h('div', { class: 'card auth-card' }, h('h2', {}, t('app.error')), h('p', { class: 'muted' }, e.message), h('a', { class: 'btn primary', href: '#/' }, t('nav.home')))));
+    clear(app, topbar(), h('div', { class: 'center-page' }, h('div', { class: 'card auth-card' }, h('h2', {}, t('app.error')), h('p', { class: 'muted' }, e.message), h('a', { class: 'btn primary', href: '#/' }, t('nav.home')))));
   } finally {
     rendering = false;
     if (again) { again = false; render(); }
@@ -125,14 +125,24 @@ async function registerSw() {
       const nw = reg.installing;
       nw?.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) onWaiting(nw); });
     });
+    // Last siden på nytt bare når en NY versjon tar over (ikke første gang appen installeres),
+    // og vent til alle lokale skrivinger er lagret først, så ingenting går tapt.
+    const hadController = !!navigator.serviceWorker.controller;
     let reloaded = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloaded) { reloaded = true; location.reload(); } });
+    navigator.serviceWorker.addEventListener('controllerchange', async () => {
+      if (!hadController || reloaded) return;
+      reloaded = true;
+      try { await (await import('./core/store.js')).flushWrites(); } catch { /* */ }
+      location.reload();
+    });
     setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
   } catch (e) { log('app', 'Service worker ble ikke registrert', { msg: e.message }); }
 }
 
 // ---------- Oppstart ----------
 (async () => {
+  // Mot «clickjacking»: GitHub Pages kan ikke sende frame-ancestors-header, så appen nekter å kjøre inne i en ramme.
+  if (window.top !== window.self) { document.getElementById('app').textContent = 'Tryggdigital kan ikke vises inne i en annen side.'; return; }
   await initLang();
   onLang(() => render());
   window.addEventListener('hashchange', render);

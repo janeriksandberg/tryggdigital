@@ -270,7 +270,7 @@ table.data tfoot td { font-weight: 700; background: var(--surface-2); }
 .foot-links { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
 
 /* ---------- Plukker: kasseregistrering ---------- */
-.flow { max-width: 760px; margin: 0 auto; padding: 18px 16px 120px; display: flex; flex-direction: column; gap: 16px; }
+.flow { max-width: 760px; margin: 0 auto; padding: 18px 16px 150px; display: flex; flex-direction: column; gap: 16px; }
 .who { display: flex; align-items: center; gap: 14px; }
 .who .avatar { width: 58px; height: 58px; font-size: 1.3rem; }
 .who h1 { margin: 0; font-size: 1.6rem; }
@@ -449,3 +449,37 @@ table.data tfoot td { font-weight: 700; background: var(--surface-2); }
   .hide-sm { display: none !important; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* ---------- Sprøyter, arbeidsøkt og nye admin-sider ---------- */
+.work-main, .super-main { max-width: 980px; margin: 0 auto; padding: 18px 16px 120px; display: flex; flex-direction: column; gap: 16px; }
+.super-main { max-width: 1200px; display: block; }
+.step-no { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: #fff; font-size: .9rem; margin-inline-end: 10px; vertical-align: middle; }
+.dose-row { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 14px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-2, #f7faf8); }
+.dose-row .field { width: 150px; }
+.wx.ok { border-color: #9fd8b8; box-shadow: 0 0 0 3px rgba(22, 131, 79, .12); }
+.check.big-check { font-weight: 650; font-size: 1.05rem; padding: 12px; border-radius: 14px; background: var(--surface-3); min-height: 56px; }
+.check.big-check input { width: 28px; height: 28px; flex: none; }
+.neg { color: var(--danger); }
+.delta { font-size: .8rem; font-weight: 700; padding: 1px 6px; border-radius: 8px; background: var(--surface-3); color: var(--muted); white-space: nowrap; }
+.delta.up { background: var(--ok-soft); color: var(--ok); }
+.delta.down { background: var(--danger-soft); color: var(--danger); }
+.notice.ok { background: var(--ok-soft); border-color: #a8dcbf; }
+.print-doc { font-family: var(--font); color: #000; font-size: 10pt; }
+.print-doc h1 { font-size: 16pt; margin: 0 0 2mm; }
+.print-doc h2 { font-size: 12pt; margin: 6mm 0 2mm; }
+.print-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+.print-table th, .print-table td { border: 1px solid #999; padding: 1.2mm 1.6mm; text-align: start; vertical-align: top; }
+.print-table thead th { background: #eef2ef; }
+.page-break { break-after: page; }
+.label.small-label { height: 48mm; }
+.label.small-label .lcode { font-size: 22pt; }
+.admin-main .sticky-action { position: sticky; inset: auto 0 0 0; margin: 0 -8px; padding-inline: 8px; }
+.admin-main .sticky-action .inner { max-width: none; justify-content: flex-end; }
+
+/* Smal skjerm: knappene i bunnlinjen skal aldri gå utenfor skjermen */
+.sticky-action .inner > .btn { min-width: 0; }
+.sticky-action .inner > .btn.xxl { flex: 1 1 auto; white-space: normal; line-height: 1.15; text-align: center; }
+@media (max-width: 520px) {
+  .sticky-action .inner > .btn.xl { flex: 0 0 auto; padding: 0 16px; }
+  .btn.xxl { font-size: 1.2rem; padding: 0 16px; }
+}

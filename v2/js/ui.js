@@ -30,7 +30,12 @@ export function icon(name, size = 22, cls = '') {
   return wrap;
 }
 
-export const clear = (el) => { while (el.firstChild) el.removeChild(el.firstChild); return el; };
+/** Tømmer et element og legger eventuelt inn nye barn (null/false hoppes over, som i h()). */
+export const clear = (el, ...kids) => {
+  while (el.firstChild) el.removeChild(el.firstChild);
+  for (const c of kids.flat(Infinity)) if (c !== null && c !== undefined && c !== false) el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  return el;
+};
 
 // ---------- Lyd og vibrasjon ----------
 let audioCtx;
@@ -182,10 +187,12 @@ export function download(filename, content, mime = 'text/plain') {
 export function toCsv(rows) {
   const esc = (v) => {
     let s = v === null || v === undefined ? '' : String(v);
-    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // hindrer formelinjeksjon i regneark
+    if (typeof v !== 'number' && !/^-?\d+([.,]\d+)?$/.test(s) && /^[=+\-@\t\r]/.test(s)) s = "'" + s; // hindrer formelinjeksjon i regneark (tall er trygge)
     return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  return '﻿' + rows.map((r) => r.map(esc).join(';')).join('\r\n');
+  // Tar imot enten rader som lister, eller objekter (kolonnenavn fra første objekt)
+  if (rows.length && !Array.isArray(rows[0])) { const cols = Object.keys(rows[0]); rows = [cols, ...rows.map((r) => cols.map((c) => r[c]))]; }
+  return '\uFEFF' + rows.map((r) => r.map(esc).join(';')).join('\r\n');
 }
 export function pickFile(accept) {
   return new Promise((resolve) => {

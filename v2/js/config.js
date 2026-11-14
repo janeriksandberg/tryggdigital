@@ -1,8 +1,15 @@
 // Firebase-oppsett for Tryggdigital v2.
 // Verdiene her er ikke hemmelige: en Firebase web-konfigurasjon er ment å ligge i klientkoden.
 // Tilgang styres av sikkerhetsreglene i firebase/firestore.rules og av innlogging.
-// Fylles inn når Firebase-prosjektet er opprettet (se docs/firebase-oppsett.md).
-export const FIREBASE_CONFIG = null;
+// Prosjekt tryggdigital-3f5a9. Google Analytics (measurementId) er bevisst utelatt og lastes ikke (personvern).
+export const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyBqi9RUwYY8zChHmsKoz3nQotfRrN3GTLg',
+  authDomain: 'tryggdigital-3f5a9.firebaseapp.com',
+  projectId: 'tryggdigital-3f5a9',
+  storageBucket: 'tryggdigital-3f5a9.firebasestorage.app',
+  messagingSenderId: '477929003090',
+  appId: '1:477929003090:web:7e9b39552eb842c102a78b',
+};
 
 // Lokal testing mot Firebase-emulatorene. Kan bare slås på når appen kjører fra localhost.
 const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);

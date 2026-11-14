@@ -40,7 +40,9 @@ export async function findPerson(tenantId, people, raw) {
 /** Lager et nytt kort for en person. Returnerer { token, card } – token vises/skrives ut én gang og lagres ikke. */
 export async function issueCard(tenantId) {
   const token = newToken();
-  const card = { id: token.slice(0, 4) + randomBytes(2).reduce((a, b) => a + b.toString(16).padStart(2, '0'), ''), h: await tokenHash(tenantId, token), created: new Date().toISOString(), hint: token.slice(-4) };
+  // id er tilfeldig (ikke en del av nøkkelen). hint = de 4 siste tegnene, slik at administrator kan kjenne igjen et utskrevet kort;
+  // det avslører 20 av 130 bit, og resten (over 100 bit) kan ikke gjettes.
+  const card = { id: base32(randomBytes(5)), h: await tokenHash(tenantId, token), created: new Date().toISOString(), hint: token.slice(-4) };
   return { token, card };
 }
 export const ROLES = ['picker', 'sprayer', 'foreman'];

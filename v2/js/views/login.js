@@ -24,7 +24,7 @@ export function view() {
       const wrap = h('main', { class: 'center-page' });
       const card = h('div', { class: 'card' });
       wrap.append(h('div', { class: 'auth-card' }, card));
-      const draw = (fn) => { clear(card); card.append(...[].concat(fn())); };
+      const draw = (fn) => { clear(card, fn()); };
       const steps = { signin, mfa, signup, verify, 'enroll-start': enrollStart, enroll, forgot };
       draw(() => (steps[step] || signin)(draw));
       return wrap;

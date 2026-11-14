@@ -41,8 +41,18 @@ export function privacyBody(code = lang()) {
     h('p', { class: 'small muted' }, tt('pv.version'), ' ', privacyKey()));
 }
 
+// Én åpen forespørsel per person: hvis visningen tegnes på nytt mens erklæringen vises,
+// gjenbrukes samme dialog i stedet for å legge en ny oppå.
+const pending = new Map();
+
 /** Viser erklæringen og ber om bekreftelse. Returnerer true hvis bekreftet. */
-export async function askConsent({ subjectId, kind, name, code = lang() }) {
+export function askConsent(opts) {
+  const key = opts.subjectId;
+  if (!pending.has(key)) pending.set(key, showConsent(opts).finally(() => pending.delete(key)));
+  return pending.get(key);
+}
+
+async function showConsent({ subjectId, kind, name, code = lang() }) {
   await loadLang(code);
   const body = h('div', { class: 'stack', lang: code },
     name ? h('p', {}, h('strong', {}, tIn(code, 'pv.hello', { name }))) : null,

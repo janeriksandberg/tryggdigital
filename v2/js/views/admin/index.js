@@ -64,7 +64,7 @@ export function view() {
       ctx = { sub: r.sub, redraw: () => drawPage() };
       const drawPage = async () => {
         const node = await mod.render(ctx);
-        clear(content).append(node);
+        clear(content, node);
       };
       await drawPage();
       return h('div', { class: 'admin-layout' }, sidebar, content);

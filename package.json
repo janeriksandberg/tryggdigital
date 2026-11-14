@@ -10,7 +10,7 @@
     "emulators": "firebase emulators:start --only auth,firestore --project demo-tryggdigital --config firebase/firebase.json",
     "test:unit": "node --test tests/unit/*.test.js",
     "test:rules": "firebase emulators:exec --only firestore --project demo-tryggdigital --config firebase/firebase.json \"node --test --test-concurrency=1 tests/rules/*.test.js\"",
-    "test:e2e": "firebase emulators:exec --only auth,firestore --project demo-tryggdigital --config firebase/firebase.json \"playwright test --trace off\"",
+    "test:e2e": "playwright test --trace off",
     "test": "npm run test:unit && npm run test:rules && npm run test:e2e",
     "build:sw": "node tools/build-sw.mjs"
   },

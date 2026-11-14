@@ -31,7 +31,8 @@ export async function loadLang(code) {
   return tables[code];
 }
 /** Setter språk. persist=false brukes når en plukker midlertidig får sitt eget språk etter skanning. */
-export async function setLang(code, { persist = true } = {}) {
+/** silent=true: bytt språk uten å tegne siden på nytt (brukes midt i en plukkers registrering, som tegnes etterpå). */
+export async function setLang(code, { persist = true, silent = false } = {}) {
   if (!LANGS.some((l) => l.code === code)) code = 'nb';
   await loadLang(code);
   current = code;
@@ -39,7 +40,7 @@ export async function setLang(code, { persist = true } = {}) {
   const info = langInfo(code);
   document.documentElement.lang = code;
   document.documentElement.dir = info.dir || 'ltr';
-  for (const fn of listeners) try { fn(code); } catch { /* */ }
+  if (!silent) for (const fn of listeners) try { fn(code); } catch { /* */ }
 }
 export const resetToDeviceLang = () => (current !== deviceLang ? setLang(deviceLang, { persist: false }) : Promise.resolve());
 export const getDeviceLang = () => deviceLang;

@@ -17,7 +17,7 @@ export function render(ctx) {
     const cb = h('input', { type: 'checkbox', 'aria-label': p.name, onchange: (e) => (e.target.checked ? selected.add(p.id) : selected.delete(p.id)) });
     return h('tr', { 'data-person': p.name },
       h('td', {}, cb),
-      h('td', {}, h('strong', {}, p.name), p.number ? h('span', { class: 'muted small' }, ` #${p.number}`), p.active === false ? h('span', { class: 'tag' }, t('people.inactive')) : null),
+      h('td', {}, h('strong', {}, p.name), p.number ? h('span', { class: 'muted small' }, ` #${p.number}`) : null, p.active === false ? h('span', { class: 'tag' }, t('people.inactive')) : null),
       h('td', {}, (p.roles || []).map((r) => h('span', { class: 'tag blue', style: { marginInlineEnd: '4px' } }, t('role.' + r)))),
       h('td', {}, LANGS.find((l) => l.code === p.lang)?.name || '–'),
       h('td', {}, cards.length ? h('span', { class: 'tag ok' }, icon('qr', 14), ` ${cards.length}`) : h('span', { class: 'tag warn' }, t('people.noCard'))),
@@ -45,6 +45,8 @@ async function editPerson(p, ctx) {
   const hourRate = input({ type: 'number', step: '0.01', min: 0, value: p.hourRate ?? '', placeholder: t('people.hourRateDefault'), name: 'hourRate' });
   const roleBoxes = ROLES.map((r) => { const cb = h('input', { type: 'checkbox', checked: (p.roles || []).includes(r), value: r, name: 'role-' + r }); return [r, cb, h('label', { class: 'check' }, cb, t('role.' + r))]; });
   const active = h('input', { type: 'checkbox', checked: p.active !== false });
+  const certNo = input({ value: p.certNo || '', name: 'certNo', maxlength: 40 });
+  const certUntil = input({ type: 'date', value: p.certUntil || '', name: 'certUntil' });
   const cards = (p.cards || []);
   const cardList = h('div', { class: 'stack tight' }, cards.length ? cards.map((c) => h('div', { class: 'row' }, icon('qr', 18), h('span', { class: 'grow mono small' }, `…${c.hint} · ${c.created?.slice(0, 10) || ''}`),
     c.revoked ? h('span', { class: 'tag bad' }, t('people.revoked')) : h('button', { class: 'btn small danger-light', type: 'button', onclick: () => { c.revoked = true; c.revokedAt = new Date().toISOString(); toast(t('people.revokeOnSave'), 'info'); cardList.replaceWith(h('p', { class: 'small' }, t('people.revokeOnSave'))); } }, t('people.revoke')))) : [h('p', { class: 'muted small' }, t('people.noCard'))]);
@@ -52,6 +54,7 @@ async function editPerson(p, ctx) {
     field(t('people.name'), name), field(t('people.number'), number, t('people.numberHint')),
     h('div', { class: 'field' }, h('span', { class: 'field-label' }, t('people.roles')), h('div', { class: 'stack tight' }, roleBoxes.map((x) => x[2]))),
     field(t('people.lang'), lang, t('people.langHint')), field(t('people.hourRate'), hourRate),
+    field(t('people.certNo'), certNo, t('people.certHint')), field(t('people.certUntil'), certUntil),
     h('label', { class: 'check' }, active, t('people.active')),
     isNew ? null : h('div', { class: 'field full' }, h('span', { class: 'field-label' }, t('people.cards')), cardList)),
   [
@@ -61,7 +64,7 @@ async function editPerson(p, ctx) {
       if (!name.value.trim()) { name.focus(); return false; }
       const roles = roleBoxes.filter((x) => x[1].checked).map((x) => x[0]);
       if (!roles.length) { toast(t('people.needRole'), 'error'); return false; }
-      return { name: name.value.trim(), number: number.value ? Number(number.value) : null, lang: lang.value || null, hourRate: hourRate.value === '' ? null : Number(hourRate.value), roles, active: active.checked };
+      return { name: name.value.trim(), number: number.value ? Number(number.value) : null, lang: lang.value || null, hourRate: hourRate.value === '' ? null : Number(hourRate.value), roles, active: active.checked, certNo: certNo.value.trim() || null, certUntil: certUntil.value || null };
     } },
   ].filter(Boolean), { wide: true });
   if (!r) return;

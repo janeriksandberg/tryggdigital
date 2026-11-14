@@ -12,7 +12,7 @@ const files = [];
   for (const f of readdirSync(dir).sort()) {
     const p = join(dir, f);
     if (statSync(p).isDirectory()) walk(p);
-    else if (!SKIP.has(f) && !f.endsWith('.map') && !f.startsWith('.')) files.push(relative(root, p).split('\\').join('/'));
+    else if (!SKIP.has(f) && !f.endsWith('.map') && !f.endsWith('.md') && !f.startsWith('.')) files.push(relative(root, p).split('\\').join('/'));
   }
 })(root);
 const hash = createHash('sha256');

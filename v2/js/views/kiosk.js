@@ -88,7 +88,7 @@ export async function identify(context) {
     return;
   }
   const p = r.person;
-  if (p.lang && p.lang !== lang()) await setLang(p.lang, { persist: false });
+  if (p.lang && p.lang !== lang()) await setLang(p.lang, { persist: false, silent: true });
   try {
     if (!hasAccepted(p.id)) {
       const ok = await askConsent({ subjectId: p.id, kind: 'person', name: p.name, code: p.lang || lang() });
@@ -195,7 +195,7 @@ export async function crateFlow(p, { onDone } = {}) {
         if (key === 'fieldId') Object.assign(st, D.crateDefaults(db, it.id), { count: st.count, weightKg: st.weightKg, quality: st.quality });
         feedback('tap'); draw();
       } }, it.color ? h('span', { class: 'dot', style: { background: it.color } }) : null, h('span', {}, it.name, sub ? h('small', {}, sub(it)) : null)))));
-    clear(main).append(
+    clear(main, 
       h('div', { class: 'who' }, avatar(p), h('div', { class: 'grow' }, h('h1', {}, p.name), h('span', { class: 'muted' }, open ? t('picker.since', { time: fmtTime(open.start) }) : t('picker.crateNotIn')))),
       !open ? h('div', { class: 'notice warn' }, icon('alert'), h('p', {}, t('picker.crateNotIn')), h('button', { class: 'btn small warn', type: 'button', onclick: () => { store.put('shifts', { personId: p.id, start: new Date().toISOString(), end: null }, p.id); toast(t('picker.clockedIn')); finishAndReopen(); } }, t('picker.start'))) : null,
       chipRow(fields, 'fieldId', t('crate.field'), (f) => (D.karensFor(db, f.id, today) ? '⚠ ' + t('crate.karensShort') : f.id === assigned ? t('crate.assigned') : cropName(f.crop))),
@@ -219,7 +219,7 @@ export async function crateFlow(p, { onDone } = {}) {
       h('div', { class: 'sticky-action' }, h('div', { class: 'inner' },
         h('button', { class: 'btn light xl', type: 'button', onclick: finish }, t('common.cancel')),
         h('button', { class: 'btn primary xxl', type: 'button', 'data-act': 'register', disabled: (karens && blockMode) || null, onclick: () => submit(karens, blockMode) }, icon('check', 28), st.count === 1 ? t('crate.registerOne') : t('crate.registerN', { n: st.count })))),
-      open ? h('div', { class: 'row', style: { justifyContent: 'center' } }, h('button', { class: 'btn ghost', type: 'button', onclick: async () => { flowEl = null; app.replaceChildren(...prev); await endDay(p); } }, icon('stop', 18), t('picker.end'))) : null,
+      open ? h('div', { class: 'row', style: { justifyContent: 'center' } }, h('button', { class: 'btn ghost', type: 'button', onclick: async () => { flowEl = null; app.replaceChildren(...prev); await endDay(p); } }, icon('logout', 18), t('picker.end'))) : null,
     );
     if (karens) registerKarensAlert(p, st, karens, false);
   };
