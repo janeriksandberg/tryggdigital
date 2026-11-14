@@ -24,7 +24,7 @@ export function render(ctx) {
 
   const list = h('div', { class: 'list' }, fields.length ? fields.map((f) => h('div', { class: 'list-item', 'data-field': f.name },
     h('span', { class: 'dot', style: { background: f.color } }),
-    h('button', { class: 'grow', style: { all: 'unset', cursor: 'pointer', flex: 1 }, onclick: () => select(f.id, true) },
+    h('button', { class: 'grow', style: { all: 'unset', cursor: 'pointer', flex: 1 }, onclick: () => focusField(f.id, true) },
       h('strong', {}, f.name, f.active === false ? ' ' : null, f.active === false ? h('span', { class: 'tag' }, t('fields.inactive')) : null),
       h('div', { class: 'small muted' }, `${cropName(f.crop)} · ${fmtNum(f.areaDaa, 1)} ${t('unit.daa')}`, f.defaultVarietyId ? ` · ${store.get('varieties', f.defaultVarietyId)?.name || ''}` : '')),
     h('button', { class: 'icon-btn', title: t('fields.editInfo'), 'aria-label': t('fields.editInfo'), onclick: () => editInfo(f) }, icon('edit', 18)),
@@ -34,7 +34,7 @@ export function render(ctx) {
   const page = h('div', { class: 'stack' },
     pageHead(t('nav.fields'), t('fields.text'),
       h('button', { class: 'btn light', 'data-act': 'import', onclick: importFields }, icon('upload', 18), t('fields.import')),
-      h('button', { class: 'btn light', onclick: () => editInfo(null) }, icon('plus', 18), t('fields.addNoMap')),
+      h('button', { class: 'btn light', 'data-act': 'add-field', onclick: () => editInfo(null) }, icon('plus', 18), t('fields.addNoMap')),
       mapAvailable() ? h('button', { class: 'btn primary', onclick: () => startDraw() }, icon('edit', 18), t('fields.draw')) : null),
     h('div', { class: 'fields-layout' },
       h('div', { class: 'map-wrap' }, mapEl, editBar),
@@ -47,11 +47,11 @@ export function render(ctx) {
       if (!f.geometry) continue;
       const layer = L.geoJSON({ type: 'Feature', geometry: f.geometry }, { style: fieldStyle(f, f.id === selectedId) }).getLayers()[0];
       layer.bindTooltip(`${f.name} · ${fmtNum(f.areaDaa, 1)} ${t('unit.daa')}`, { permanent: true, direction: 'center', className: 'field-tip' });
-      layer.on('click', () => select(f.id, false));
+      layer.on('click', () => focusField(f.id, false));
       group.addLayer(layer); layers.set(f.id, layer);
     }
   };
-  const select = (id, zoom) => { selectedId = id; drawAll(); const l = layers.get(id); if (zoom && l) map.fitBounds(l.getBounds(), { padding: [40, 40], maxZoom: 18 }); };
+  const focusField = (id, zoom) => { selectedId = id; drawAll(); const l = layers.get(id); if (zoom && l) map.fitBounds(l.getBounds(), { padding: [40, 40], maxZoom: 18 }); };
   const showBar = (text, buttons) => { editBar.hidden = false; editBar.replaceChildren(h('span', { class: 'grow' }, text), ...buttons.map((b) => h('button', { class: `btn small ${b.cls}`, onclick: b.fn }, b.label))); };
   const hideBar = () => { editBar.hidden = true; };
   const startDraw = () => {
@@ -60,7 +60,7 @@ export function render(ctx) {
     showBar(t('fields.drawHint'), [{ label: t('common.cancel'), cls: 'light', fn: () => { map.pm.disableDraw(); hideBar(); } }]);
   };
   const editShape = (id) => {
-    stopEdit(false); select(id, true);
+    stopEdit(false); focusField(id, true);
     const l = layers.get(id);
     if (!l) return;
     l.unbindTooltip();
