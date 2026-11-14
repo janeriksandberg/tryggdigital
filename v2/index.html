@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="nb">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://cache.kartverket.no https://tile.openstreetmap.org; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.met.no http://127.0.0.1:8080 http://127.0.0.1:9099 ws://127.0.0.1:8080; media-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Tryggdigital</title>
+  <meta name="description" content="Tryggdigital – registrering av arbeidstid og kasser for bærplukkere, lønn, sporbarhet og elektronisk sprøytejournal.">
+  <meta name="theme-color" content="#0f4d36">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="vendor/leaflet.css">
+  <link rel="stylesheet" href="vendor/leaflet-geoman.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script src="vendor/leaflet.js" defer></script>
+  <script src="vendor/leaflet-geoman.min.js" defer></script>
+  <script src="vendor/qrcode.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <div id="app"><div class="boot">Tryggdigital …</div></div>
+  <div class="print-area" id="print-area"></div>
+  <noscript>Tryggdigital krever JavaScript.</noscript>
+</body>
+</html>

@@ -1,0 +1,117 @@
+rules_version = '2';
+// Sikkerhetsregler for Tryggdigital v2. Testes av tests/rules/*.test.js mot Firestore-emulatoren.
+//
+// Roller:
+//  - Superadministrator: dokument /superadmins/{uid} (opprettes bare manuelt i Firebase-konsollet) + tofaktor.
+//  - Administrator for kunde t: dokument /tenants/{t}/admins/{e-post} + bekreftet e-post + tofaktor.
+//  - Enhet: anonym Firebase-bruker med /devices/{uid} der status == 'active' og tenantId == t.
+// Plukkere, sprøytere og formenn har ingen egen konto; de identifiseres med QR-kort på en godkjent enhet.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    // Passord alene er aldri nok: krever andre faktor i innloggingen
+    function mfa() {
+      return signedIn()
+        && request.auth.token.get('email_verified', false) == true
+        && request.auth.token.get('firebase', {}).get('sign_in_second_factor', null) != null;
+    }
+    function emailKey() { return request.auth.token.email.lower(); }
+    function isSuper() { return mfa() && exists(/databases/$(database)/documents/superadmins/$(request.auth.uid)); }
+    function isAdmin(t) {
+      return mfa() && (isSuper() || exists(/databases/$(database)/documents/tenants/$(t)/admins/$(emailKey())));
+    }
+    function isAnon() { return signedIn() && request.auth.token.get('firebase', {}).get('sign_in_provider', '') == 'anonymous'; }
+    function deviceData() { return get(/databases/$(database)/documents/devices/$(request.auth.uid)).data; }
+    function isDevice(t) {
+      return isAnon()
+        && exists(/databases/$(database)/documents/devices/$(request.auth.uid))
+        && deviceData().status == 'active' && deviceData().tenantId == t;
+    }
+    function member(t) { return isAdmin(t) || isDevice(t); }
+
+    // Samlinger – må stemme med v2/js/core/schema.js
+    function adminCol(c) { return c in ['settings', 'people', 'fields', 'varieties', 'crateTypes', 'products']; }
+    function deviceCol(c) { return c in ['shifts', 'crates', 'sprays', 'stock', 'pallets', 'consents', 'assignments', 'tasks', 'alerts', 'events']; }
+
+    // Alle synkede dokumenter har versjon (_v), avsender (_dev) og servertid (_srv).
+    function validRecord() {
+      let d = request.resource.data;
+      return d._v is string && d._v.size() > 10 && d._v.size() < 100
+        && d._dev is string && d._dev.size() < 60
+        && d._srv == request.time
+        && (!('_del' in d) || d._del is bool)
+        && d.keys().size() <= 60;
+    }
+    // Siste versjon vinner: en eldre versjon kan aldri overskrive en nyere.
+    function notOlder() { return resource == null || request.resource.data._v >= resource.data._v; }
+
+    match /superadmins/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list, write: if false;
+    }
+
+    match /tenants/{t} {
+      allow get: if member(t);
+      allow list: if isSuper();
+      allow create, update: if isSuper()
+        && request.resource.data.name is string && request.resource.data.name.size() <= 120;
+      allow delete: if isSuper();
+
+      match /admins/{email} {
+        allow read: if isAdmin(t) || (mfa() && email == emailKey());
+        allow create, update: if isAdmin(t) && email == email.lower()
+          && request.resource.data.email == email && request.resource.data.keys().hasOnly(['email', 'addedBy', 'addedAt']);
+        allow delete: if isAdmin(t) && email != emailKey(); // man kan ikke fjerne seg selv
+      }
+
+      // Signalering for LAN-synk (WebRTC). Inneholder bare tekniske tilkoblingsdata.
+      match /signals/{sid} {
+        allow read: if member(t);
+        allow create, update: if member(t)
+          && request.resource.data.kind in ['hello', 'offer', 'answer']
+          && request.resource.data.ts == request.time
+          && request.resource.data.get('sdp', '').size() < 20000
+          && request.resource.data.keys().hasOnly(['kind', 'from', 'to', 'sid', 'sdp', 'ts']);
+        allow delete: if member(t);
+      }
+
+      match /{c}/{id} {
+        allow read: if (adminCol(c) || deviceCol(c)) && member(t);
+        allow create, update: if (adminCol(c) || deviceCol(c)) && validRecord() && notOlder()
+          && (isAdmin(t) || (deviceCol(c) && isDevice(t)));
+        // Fysisk sletting (f.eks. ved gjenoppretting eller sletting av personopplysninger) bare for administrator
+        allow delete: if (adminCol(c) || deviceCol(c)) && isAdmin(t);
+      }
+    }
+
+    // Finne egne kunder: collectionGroup('admins') where email == egen e-post
+    match /{path=**}/admins/{email} {
+      allow read: if mfa() && resource.data.email == emailKey();
+    }
+
+    match /devices/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isSuper()
+        || (resource != null && isAdmin(resource.data.tenantId)));
+      allow list: if isSuper() || (resource.data.tenantId is string && isAdmin(resource.data.tenantId));
+      allow create: if (isSuper() || isAdmin(request.resource.data.tenantId))
+        && request.resource.data.status == 'active'
+        && request.resource.data.tenantId is string
+        && request.resource.data.name is string && request.resource.data.name.size() <= 60
+        && request.resource.data.keys().hasOnly(['tenantId', 'name', 'status', 'addedBy', 'addedAt']);
+      allow update: if isSuper()
+        // Kundens administrator kan gi nytt navn, stenge eller be om ny synk, men ikke flytte enheten til en annen kunde
+        || (isAdmin(resource.data.tenantId) && request.resource.data.tenantId == resource.data.tenantId
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'status', 'cmd']))
+        // Enheten selv kan bare oppdatere diagnose og «sist sett»
+        || (request.auth.uid == uid && resource.data.status == 'active'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen', 'appVersion', 'diag']));
+      allow delete: if isSuper() || isAdmin(resource.data.tenantId);
+    }
+
+    // Alt annet er stengt
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
