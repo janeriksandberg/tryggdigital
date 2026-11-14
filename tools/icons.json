@@ -1,0 +1,18 @@
+{
+ "wifi":"wifi","offline":"wifi-off","cloud":"cloud-check","cloudOff":"cloud-off","sync":"refresh-cw","lan":"network",
+ "scan":"scan-qr-code","qr":"qr-code","tractor":"tractor","sprout":"sprout","leaf":"leaf","grape":"grape","cherry":"cherry",
+ "box":"package","boxes":"boxes","warehouse":"warehouse","users":"users","user":"user-round","userPlus":"user-round-plus",
+ "shield":"shield-check","shieldAlert":"shield-alert","key":"key-round","lock":"lock","login":"log-in","logout":"log-out",
+ "map":"map","mapPin":"map-pin","chart":"chart-column","file":"file-text","download":"download","upload":"upload",
+ "printer":"printer","settings":"settings","tablet":"tablet-smartphone","phone":"smartphone","monitor":"monitor",
+ "support":"life-buoy","alert":"triangle-alert","info":"info","check":"check","checkCircle":"circle-check","x":"x",
+ "plus":"plus","minus":"minus","trash":"trash-2","edit":"pencil","clock":"clock","calendar":"calendar","thermo":"thermometer",
+ "wind":"wind","droplet":"droplet","flask":"flask-conical","languages":"languages","globe":"globe","history":"history",
+ "tag":"tag","layers":"layers","list":"list","clipboard":"clipboard-list","eye":"eye","search":"search","home":"house",
+ "menu":"menu","chevRight":"chevron-right","chevLeft":"chevron-left","chevDown":"chevron-down","arrowRight":"arrow-right",
+ "bell":"bell-ring","play":"play","stop":"square","truck":"truck","scale":"scale","star":"star","trophy":"trophy",
+ "flame":"flame","camera":"camera","keyboard":"keyboard","link":"link","unlink":"unlink","building":"building-2",
+ "ban":"ban","timer":"timer","hourglass":"hourglass","database":"database","backup":"database-backup","server":"server",
+ "radio":"radio-tower","award":"award","crown":"crown","sun":"sun","moon":"moon","filter":"list-filter","copy":"copy",
+ "send":"send","receipt":"receipt","banknote":"banknote","route":"route","target":"target","bug":"bug"
+}
