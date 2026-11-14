@@ -34,7 +34,7 @@ export default {
   'karens.title': 'Perioadă de pauză – nu culege!', 'karens.text': '{field} a fost stropită pe {date} ({products}). Culesul este permis de la {allowed}.',
   'karens.blocked': 'Înregistrarea este blocată. Șeful de echipă a fost anunțat.', 'karens.warnOnly': 'Dacă înregistrezi, șeful de echipă va fi anunțat.',
   'scan.title': 'Scanează codul QR', 'scan.hint': 'Ține codul în cadru', 'scan.hintCard': 'Ține cardul QR în fața camerei',
-  'scan.starting': 'Se pornește camera …', 'scan.looking': 'Se caută codul …', 'scan.torch': 'Lumină', 'scan.manual': 'Scrie codul', 'scan.manualLabel': 'Cod',
+  'scan.starting': 'Se pornește camera …', 'scan.looking': 'Se caută codul …', 'scan.torch': 'Lumină', 'scan.manual': 'Scrie codul', 'scan.manualLabel': 'Cod', 'scan.switchCamera': 'Schimbă camera', 'scan.maskHint': 'Scrie doar literele și cifrele – cratimele se adaugă singure.',
   'scan.noCamera': 'Nu s-a găsit nicio cameră. Scrie codul.', 'scan.noPermission': 'Aplicația nu are voie să folosească camera. Permite camera în browser sau scrie codul.',
   'scan.noDetector': 'Scanarea nu este acceptată aici. Scrie codul.', 'scan.notAccepted': 'Card neacceptat',
   'scan.revoked': 'Acest card este blocat. Cere unul nou de la șeful de echipă.', 'scan.inactive': 'Această persoană nu este activă. Contactează șeful de echipă.',

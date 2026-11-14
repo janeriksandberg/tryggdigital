@@ -5,6 +5,7 @@ import { h, icon, toast, bigResult, feedback, fmtTime, fmtDuration, fmtDate, fmt
 import * as store from '../core/store.js';
 import * as D from '../core/domain.js';
 import { findPerson } from '../core/qrauth.js';
+import { CARD_MASK } from '../core/codemask.js';
 import { scan } from '../scanner.js';
 import { S, isAdminHere } from '../session.js';
 import { hasAccepted, askConsent } from './privacy.js';
@@ -79,7 +80,7 @@ function home() {
 // ---------- Identifisering med QR ----------
 export async function identify(context) {
   const titles = { start: t('picker.start'), end: t('picker.end'), crate: t('picker.crate'), sprayer: t('role.sprayer'), foreman: t('role.foreman'), any: t('kiosk.scan') };
-  const raw = await scan({ title: titles[context], hint: t('scan.hintCard'), color: 'green' });
+  const raw = await scan({ title: titles[context], hint: t('scan.hintCard'), color: 'green', mask: CARD_MASK });
   if (!raw) return;
   const r = await findPerson(store.tenantId(), store.all('people'), raw);
   if (r.error) {

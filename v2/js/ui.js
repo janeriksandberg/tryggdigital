@@ -1,6 +1,7 @@
 // UI-hjelpere: elementbygger, ikoner, toast, modaler, lyd/vibrasjon, QR, formatering og nedlasting.
 import { t, locale } from './i18n.js';
 import { ICONS } from './icons.js';
+import { maskTemplate, cleanChars, formatMasked, caretFor, isComplete } from './core/codemask.js';
 
 export function h(tag, attrs = {}, ...children) {
   const el = document.createElement(tag);
@@ -209,3 +210,44 @@ export function select(options, value, attrs = {}) {
   return h('select', { class: 'input', ...attrs }, options.map(([v, l]) => h('option', { value: v, selected: String(v) === String(value ?? '') }, l)));
 }
 export const empty = (iconName, text, action) => h('div', { class: 'empty' }, icon(iconName, 40), h('p', {}, text), action || null);
+
+/**
+ * Felt for kode med fast format (som en produktnøkkel). Skilletegnene vises på forhånd i grått og
+ * settes inn automatisk; brukeren skriver bare tegnene. Innliming av hel kode virker.
+ * mask: se core/codemask.js. Returnerer { el, input, complete() }.
+ */
+export function codeInput(mask, attrs = {}, onChange = () => {}) {
+  const tpl = maskTemplate(mask);
+  const ghostTyped = h('span', { class: 'typed' });
+  const ghostRest = h('span', { class: 'rest' }, tpl);
+  const ghost = h('div', { class: 'code-ghost', 'aria-hidden': 'true' }, ghostTyped, ghostRest);
+  const input = h('input', { class: 'input big code-input', autocomplete: 'off', autocapitalize: 'characters', autocorrect: 'off', spellcheck: 'false', maxlength: tpl.length, 'aria-label': attrs['aria-label'] || null, ...attrs });
+  const sync = () => {
+    ghostTyped.textContent = input.value;
+    ghostRest.textContent = tpl.slice(input.value.length);
+    const done = isComplete(input.value, mask);
+    wrap.classList.toggle('complete', done);
+    onChange(done);
+  };
+  const reformat = () => {
+    const pos = input.selectionStart ?? input.value.length;
+    const before = cleanChars(input.value.slice(0, pos), mask).length;
+    const chars = cleanChars(input.value, mask);
+    input.value = formatMasked(chars, mask);
+    const caret = Math.min(caretFor(before, mask), input.value.length);
+    try { input.setSelectionRange(caret, caret); } catch { /* ikke fokusert */ }
+    sync();
+  };
+  input.addEventListener('input', reformat);
+  input.addEventListener('keydown', (e) => {
+    // Sletting rett etter et skilletegn sletter tegnet foran skilletegnet.
+    if (e.key === 'Backspace' && input.selectionStart === input.selectionEnd && input.selectionStart > 0
+      && input.value.slice(input.selectionStart - mask.sep.length, input.selectionStart) === mask.sep) {
+      const p = input.selectionStart - mask.sep.length;
+      input.setSelectionRange(p, p);
+    }
+  });
+  const wrap = h('div', { class: 'code-mask' }, ghost, input);
+  if (attrs.value) reformat(); else sync();
+  return { el: wrap, input, complete: () => isComplete(input.value, mask) };
+}

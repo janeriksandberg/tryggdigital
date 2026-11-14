@@ -34,7 +34,7 @@ export default {
   'karens.title': 'Період очікування – не збирати!', 'karens.text': '{field} обприскали {date} ({products}). Збирати дозволено з {allowed}.',
   'karens.blocked': 'Реєстрацію заблоковано. Бригадира повідомлено.', 'karens.warnOnly': 'Якщо ви зареєструєте, бригадира буде повідомлено.',
   'scan.title': 'Скануйте QR-код', 'scan.hint': 'Тримайте код у рамці', 'scan.hintCard': 'Тримайте QR-картку перед камерою',
-  'scan.starting': 'Запуск камери …', 'scan.looking': 'Шукаю код …', 'scan.torch': 'Світло', 'scan.manual': 'Ввести код', 'scan.manualLabel': 'Код',
+  'scan.starting': 'Запуск камери …', 'scan.looking': 'Шукаю код …', 'scan.torch': 'Світло', 'scan.manual': 'Ввести код', 'scan.manualLabel': 'Код', 'scan.switchCamera': 'Змінити камеру', 'scan.maskHint': 'Вводьте лише літери й цифри – дефіси додаються автоматично.',
   'scan.noCamera': 'Камеру не знайдено. Введіть код.', 'scan.noPermission': 'Застосунок не має доступу до камери. Дозвольте камеру в браузері або введіть код.',
   'scan.noDetector': 'Сканування тут не підтримується. Введіть код.', 'scan.notAccepted': 'Картку не прийнято',
   'scan.revoked': 'Цю картку заблоковано. Попросіть у бригадира нову.', 'scan.inactive': 'Ця особа неактивна. Зверніться до бригадира.',

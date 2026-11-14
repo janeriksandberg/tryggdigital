@@ -34,7 +34,7 @@ export default {
   'karens.title': 'Laukimo laikotarpis – neskinti!', 'karens.text': '{field} purkštas {date} ({products}). Skinti leidžiama nuo {allowed}.',
   'karens.blocked': 'Registracija užblokuota. Brigadininkas informuotas.', 'karens.warnOnly': 'Jei registruosite, brigadininkas bus informuotas.',
   'scan.title': 'Nuskenuokite QR kodą', 'scan.hint': 'Laikykite kodą rėmelyje', 'scan.hintCard': 'Laikykite QR kortelę priešais kamerą',
-  'scan.starting': 'Įjungiama kamera …', 'scan.looking': 'Ieškoma kodo …', 'scan.torch': 'Šviesa', 'scan.manual': 'Įvesti kodą', 'scan.manualLabel': 'Kodas',
+  'scan.starting': 'Įjungiama kamera …', 'scan.looking': 'Ieškoma kodo …', 'scan.torch': 'Šviesa', 'scan.manual': 'Įvesti kodą', 'scan.manualLabel': 'Kodas', 'scan.switchCamera': 'Keisti kamerą', 'scan.maskHint': 'Įveskite tik raides ir skaičius – brūkšneliai atsiras patys.',
   'scan.noCamera': 'Kamera nerasta. Įveskite kodą.', 'scan.noPermission': 'Programėlė negali naudoti kameros. Leiskite kamerą naršyklėje arba įveskite kodą.',
   'scan.noDetector': 'Skenavimas čia nepalaikomas. Įveskite kodą.', 'scan.notAccepted': 'Kortelė nepriimta',
   'scan.revoked': 'Ši kortelė užblokuota. Paprašykite brigadininko naujos.', 'scan.inactive': 'Šis asmuo neaktyvus. Kreipkitės į brigadininką.',

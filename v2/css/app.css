@@ -483,3 +483,17 @@ table.data tfoot td { font-weight: 700; background: var(--surface-2); }
   .sticky-action .inner > .btn.xl { flex: 0 0 auto; padding: 0 16px; }
   .btn.xxl { font-size: 1.2rem; padding: 0 16px; }
 }
+
+/* ---------- Kode med fast format (forhåndsutfylte skilletegn) ---------- */
+.code-mask { position: relative; background: #fff; border-radius: 14px; color: var(--ink, #10231a); }
+.code-mask .code-input, .code-mask .code-ghost {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: clamp(.8rem, 3.6vw, 1.45rem); letter-spacing: 0; text-transform: uppercase; font-variant-ligatures: none;
+}
+.manual-form .code-mask .code-input { font-size: clamp(.8rem, 3.6vw, 1.45rem); }
+.manual-label { color: #fff; font-size: 1.05rem; }
+.code-mask .code-input { position: relative; z-index: 1; background: transparent; width: 100%; }
+.code-mask .code-ghost { position: absolute; inset: 0; z-index: 0; display: flex; align-items: center; white-space: pre; overflow: hidden; pointer-events: none; color: #9aa7a0; border: 1.5px solid transparent; padding: 0 14px; }
+.code-mask .code-ghost .typed { color: transparent; }
+.code-mask.complete .code-input { border-color: var(--brand-2); }
+.cam-switch { width: 100%; }

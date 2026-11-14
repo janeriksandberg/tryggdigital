@@ -2,7 +2,7 @@
 // Bruker nettleserens innebygde BarcodeDetector der den finnes (Chrome/Android),
 // ellers ZXing (WebAssembly) via barcode-detector-biblioteket, lastet lokalt.
 import { t } from './i18n.js';
-import { h, feedback, icon } from './ui.js';
+import { h, feedback, icon, codeInput } from './ui.js';
 
 const FORMATS = ['qr_code', 'code_128', 'code_39', 'ean_13', 'ean_8', 'upc_a', 'itf', 'data_matrix'];
 let detectorPromise = null;
@@ -40,9 +40,15 @@ function loadScript(src) {
   });
 }
 
+const CAM_KEY = 'td2.camera';
+const savedCamera = () => { try { return localStorage.getItem(CAM_KEY); } catch { return null; } };
+const saveCamera = (id) => { try { if (id) localStorage.setItem(CAM_KEY, id); } catch { /* privat modus */ } };
+
 /**
  * Åpner fullskjerm-skanner. Returnerer Promise<string|null> med koden.
- * opts: { title, hint, color }
+ * opts: { title, hint, color, placeholder, mask, manualFirst }
+ * mask: fast format for inntasting (core/codemask.js), f.eks. CARD_MASK. Da settes skilletegnene inn automatisk.
+ * Har enheten flere kameraer, vises «Bytt kamera». Valget huskes på enheten.
  */
 export function scan(opts = {}) {
   return new Promise((resolve) => {
@@ -54,9 +60,14 @@ export function scan(opts = {}) {
     const status = h('div', { class: 'scan-status' }, t('scan.starting'));
     const torchBtn = h('button', { class: 'scan-tool', hidden: '', 'aria-label': t('scan.torch'), onclick: toggleTorch }, icon('sun', 26));
 
+    let cameras = [], manualMode = false;
+    const camLabel = h('span', {}, t('scan.switchCamera'));
+    const camBtn = h('button', { class: 'btn ghost-light xl cam-switch', type: 'button', hidden: '', 'data-act': 'switch-camera', onclick: () => switchCamera() }, icon('switchCamera'), camLabel);
+    const stopStream = () => { if (stream) stream.getTracks().forEach((tr) => tr.stop()); stream = null; };
+
     const close = (value) => {
       running = false;
-      if (stream) stream.getTracks().forEach((tr) => tr.stop());
+      stopStream();
       overlay.remove();
       document.removeEventListener('keydown', onKey);
       resolve(value);
@@ -65,10 +76,22 @@ export function scan(opts = {}) {
     document.addEventListener('keydown', onKey);
 
     const manual = () => {
-      const input = h('input', { class: 'input big', placeholder: opts.placeholder || 'XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XX', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', name: 'manualcode' });
-      const form = h('form', { class: 'manual-form', onsubmit: (e) => { e.preventDefault(); if (input.value.trim()) close(input.value.trim()); } },
-        h('label', { class: 'label' }, t('scan.manualLabel')), input,
-        h('button', { class: 'btn primary xl', type: 'submit' }, t('common.ok')));
+      manualMode = true;
+      stopStream();
+      camBtn.hidden = true;
+      let input, form;
+      const ok = h('button', { class: 'btn primary xl', type: 'submit' }, t('common.ok'));
+      if (opts.mask) {
+        const ci = codeInput(opts.mask, { name: 'manualcode', 'aria-label': t('scan.manualLabel') }, (done) => { ok.disabled = !done; });
+        input = ci.input;
+        ok.disabled = true;
+        form = h('form', { class: 'manual-form', onsubmit: (e) => { e.preventDefault(); if (ci.complete()) close(input.value); } },
+          h('label', { class: 'field-label manual-label' }, t('scan.manualLabel')), ci.el, h('p', { class: 'small', style: { margin: 0, opacity: 0.8 } }, t('scan.maskHint')), ok);
+      } else {
+        input = h('input', { class: 'input big', placeholder: opts.placeholder || '', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', name: 'manualcode' });
+        form = h('form', { class: 'manual-form', onsubmit: (e) => { e.preventDefault(); if (input.value.trim()) close(input.value.trim()); } },
+          h('label', { class: 'field-label manual-label' }, t('scan.manualLabel')), input, ok);
+      }
       body.replaceChildren(form);
       setTimeout(() => input.focus(), 50);
     };
@@ -82,6 +105,7 @@ export function scan(opts = {}) {
         h('div', { class: 'scan-title' }, h('strong', {}, opts.title || t('scan.title')), h('span', {}, opts.hint || t('scan.hint'))),
         torchBtn),
       body,
+      camBtn,
       h('div', { class: 'scan-actions' },
         h('button', { class: 'btn ghost-light xl', onclick: manual, 'data-act': 'manual' }, icon('keyboard'), t('scan.manual')),
         h('button', { class: 'btn light xl', onclick: () => close(null) }, icon('x'), t('common.cancel'))));
@@ -94,6 +118,62 @@ export function scan(opts = {}) {
       try { await track.applyConstraints({ advanced: [{ torch: torchOn }] }); } catch { /* ikke støttet */ }
     }
 
+    async function openStream(deviceId) {
+      const size = { width: { ideal: 1280 }, height: { ideal: 720 } };
+      return navigator.mediaDevices.getUserMedia({
+        video: deviceId ? { deviceId: { exact: deviceId }, ...size } : { facingMode: { ideal: 'environment' }, ...size },
+        audio: false,
+      });
+    }
+    async function startCamera(deviceId) {
+      stopStream();
+      try { stream = await openStream(deviceId); } catch (e) {
+        if (!deviceId) throw e;
+        stream = await openStream(null); // lagret kamera finnes ikke lenger
+      }
+      if (!running || manualMode) { stopStream(); return; }
+      video.srcObject = stream;
+      try { await video.play(); } catch { /* autoplay */ }
+      const track = stream.getVideoTracks()[0];
+      torchOn = false;
+      const caps = track?.getCapabilities?.();
+      torchBtn.hidden = !(caps && caps.torch);
+      return track?.getSettings?.().deviceId || deviceId;
+    }
+    async function listCameras() {
+      try {
+        cameras = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+      } catch { cameras = []; }
+      updateCamBtn();
+    }
+    function currentCameraIndex() {
+      const id = stream?.getVideoTracks()[0]?.getSettings?.().deviceId;
+      return Math.max(0, cameras.findIndex((c) => c.deviceId === id));
+    }
+    function updateCamBtn() {
+      camBtn.hidden = cameras.length < 2;
+      if (cameras.length >= 2) {
+        const i = currentCameraIndex();
+        camLabel.textContent = `${t('scan.switchCamera')} (${i + 1}/${cameras.length})`;
+        camBtn.title = cameras[i]?.label || '';
+      }
+    }
+    async function switchCamera() {
+      if (cameras.length < 2) return;
+      const next = cameras[(currentCameraIndex() + 1) % cameras.length];
+      camBtn.disabled = true;
+      try {
+        const id = await startCamera(next.deviceId);
+        saveCamera(id || next.deviceId);
+        feedback('tap');
+      } catch {
+        status.textContent = t('scan.noCamera');
+      } finally {
+        camBtn.disabled = false;
+        updateCamBtn();
+      }
+    }
+
     if (opts.manualFirst) { manual(); return; }
     (async () => {
       if (!navigator.mediaDevices?.getUserMedia) {
@@ -101,20 +181,14 @@ export function scan(opts = {}) {
         return manual();
       }
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: false,
-        });
+        await startCamera(savedCamera());
       } catch (e) {
         status.textContent = t('scan.noPermission');
         status.classList.add('error');
         return;
       }
-      if (!running) { stream.getTracks().forEach((tr) => tr.stop()); return; }
-      video.srcObject = stream;
-      try { await video.play(); } catch { /* autoplay */ }
-      const caps = stream.getVideoTracks()[0]?.getCapabilities?.();
-      if (caps && caps.torch) torchBtn.hidden = false;
+      if (!running || manualMode) { stopStream(); return; }
+      await listCameras();
       status.textContent = t('scan.looking');
       let detector;
       try { detector = await getDetector(); } catch (e) {
