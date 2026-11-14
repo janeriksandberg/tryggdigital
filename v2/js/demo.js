@@ -62,6 +62,8 @@ export async function seedDemo() {
   store.put('assignments', { date: today, personId: pickers[2].id, fieldId: f3.id });
   // Sprøyting på Bringebærlia for to dager siden med 7 dagers karenstid -> sperre i dag
   const sprayDate = addDays(today, -2);
+  store.put('buyers', { name: 'Demo Frukt og Grønt AS (fiktiv)', orgNo: '', address: 'Torggata 1, 3000 Drammen', contact: '' });
+  store.put('fertilizations', { date: sprayDate, fieldId: f3.id, fieldName: f3.name, crop: 'RUBID', areaDaa: 5.6, product: 'Eksempelgjødsel 12-4-18 (fiktiv)', kind: 'mineral', amount: 30, unit: 'kg/daa', nContent: 12, pContent: 4, kContent: 18, nPerDaa: 3.6, pPerDaa: 1.2, kPerDaa: 5.4, method: 'spread', operator: people[4].name, notes: 'Demodata' });
   store.put('sprays', { fieldId: f3.id, fieldName: f3.name, date: sprayDate, startTime: '06:30', crop: 'RUBID', areaDaa: 5.6, products: [{ productId: prods[1].id, name: prods[1].name, regNo: prods[1].regNo, dose: 0.1, unit: 'l/daa', phiDays: 7 }], target: 'Gråskimmel', operatorId: people[4].id, operator: people[4].name, phiDays: 7, weather: { temp: 14, wind: 2.1, confirmed: true } });
   store.put('tasks', { type: 'spray', fieldId: f1.id, plannedDate: addDays(today, 1), assigneeId: people[4].id, productIds: [prods[0].id], status: 'open', note: 'Forebyggende mot gråskimmel' });
 }

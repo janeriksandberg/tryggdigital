@@ -62,4 +62,9 @@ export default {
   'pv.rights.h': 'Jūsų teisės', 'pv.rights.p': 'Galite prašyti susipažinti su duomenimis, juos ištaisyti ir ištrinti (kai jų nebūtina saugoti) bei juos perduoti. Kreipkitės į darbdavį. Taip pat galite pateikti skundą Norvegijos duomenų apsaugos institucijai (Datatilsynet).',
   'pv.card.h': 'Jūsų QR kortelė', 'pv.card.p': 'Kortelė asmeninė. Neskolinkite jos kitiems. Jei ją pamestumėte, iškart praneškite – ji bus užblokuota ir gausite naują.',
   'pv.extra.h': 'Daugiau iš darbdavio',
+  "picker.break": "Pertrauka",
+  "picker.breakStarted": "Geros pertraukos, {name}!",
+  "picker.breakHelp": "Grįžę nuskenuokite kortelę.",
+  "picker.breakOver": "Sveiki sugrįžę, {name}!",
+  "picker.breakLasted": "Pertrauka truko {min} min.",
 };

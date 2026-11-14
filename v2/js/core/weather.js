@@ -44,11 +44,16 @@ export function compass(deg) {
 }
 
 export async function fetchForecast(lat, lon, at = new Date()) {
+  const r = await fetchForecastJson(lat, lon);
+  return r.cached ? { ...pickWeather(r.json, at), cached: true } : pickWeather(r.json, at);
+}
+/** Hele varselet (brukes også til frost- og sprøytevarsel på oversikten). Samme mellomlager og samme vilkår. */
+export async function fetchForecastJson(lat, lon) {
   const la = round4(lat), lo = round4(lon);
   const key = `${CACHE_KEY}${la},${lo}`;
   try {
     const c = JSON.parse(localStorage.getItem(key) || 'null');
-    if (c && Date.now() < c.expires) return { ...pickWeather(c.json, at), cached: true };
+    if (c && Date.now() < c.expires) return { json: c.json, cached: true };
   } catch { /* */ }
   const res = await fetch(`${MET_URL}?lat=${la}&lon=${lo}`, { mode: 'cors', credentials: 'omit', referrerPolicy: 'strict-origin-when-cross-origin' });
   if (res.status === 429) throw new Error('throttled');
@@ -56,5 +61,5 @@ export async function fetchForecast(lat, lon, at = new Date()) {
   const json = await res.json();
   const exp = Date.parse(res.headers.get('Expires') || '') || Date.now() + 30 * 60 * 1000;
   try { localStorage.setItem(key, JSON.stringify({ expires: Math.max(exp, Date.now() + 10 * 60 * 1000), json })); } catch { /* full lagring */ }
-  return pickWeather(json, at);
+  return { json, cached: false };
 }

@@ -6,6 +6,8 @@ import * as D from '../../core/domain.js';
 import { S } from '../../session.js';
 import { pageHead } from './index.js';
 import { dbAll } from '../shared.js';
+import { centroid, fetchForecastJson, CREDIT } from '../../core/weather.js';
+import { fmtDateTime } from '../../ui.js';
 
 export function render() {
   const db = dbAll();
@@ -28,6 +30,7 @@ export function render() {
     h('div', { class: 'kpis' },
       kpi(snap.working.length, t('kiosk.atWork')), kpi(fmtNum(snap.total, 0), t('kiosk.cratesToday')),
       kpi(fmtKr(pay.reduce((a, r) => a + r.pay, 0)), t('ov.payToday')), kpi(blocked.length, t('kiosk.karensFields'), blocked.length ? 'bad' : '')),
+    outlookCard(db),
     alerts.length ? h('div', { class: 'notice bad' }, icon('alert'), h('div', {}, h('strong', {}, t('ov.alerts', { n: alerts.length })), h('p', {}, h('a', { href: '#/admin/today' }, t('ov.seeAlerts'))))) : null,
     stock.length ? h('div', { class: 'notice warn' }, icon('flask'), h('p', {}, t('ov.negativeStock', { names: stock.map((s) => s.product.name).join(', ') }))) : null,
     h('div', { class: 'grid two' },
@@ -40,3 +43,25 @@ export function render() {
 }
 const kpi = (v, l, cls = '') => h('div', { class: 'kpi' }, h('div', { class: 'v', style: cls === 'bad' && v ? { color: 'var(--danger)' } : null }, String(v)), h('div', { class: 'l' }, l));
 export const onData = (ev, ctx) => ctx.redraw();
+
+/** Frost- og sprøytevarsel for de neste 48 timene, fra MET-varselet for det første jordet med kartposisjon. */
+function outlookCard(db) {
+  const f = db.fields.find((x) => x.geometry && x.active !== false);
+  const pos = f && centroid(f.geometry);
+  if (!pos) return null;
+  const box = h('div', { class: 'card outlook', 'data-outlook': '', hidden: true });
+  fetchForecastJson(pos.lat, pos.lon).then(({ json }) => {
+    const o = D.weatherOutlook(json);
+    if (!o || !o.min) return;
+    box.hidden = false;
+    box.replaceChildren(
+      h('div', { class: 'card-head' }, h('h3', {}, icon('wind', 18), ' ', t('ov.outlook', { field: f.name })), h('span', { class: 'small muted' }, t('ov.forecast'))),
+      o.frostHours ? h('div', { class: 'notice bad', 'data-frost': o.frostHours }, icon('snowflake'), h('p', {}, h('strong', {}, t('ov.frost')), ' ', t('ov.frostText', { temp: fmtNum(o.min.temp, 1), time: fmtDateTime(o.firstFrost), hours: o.frostHours }))) : null,
+      h('div', { class: 'kpis' },
+        kpi(`${fmtNum(o.min.temp, 1)} °C`, t('ov.minTemp', { time: fmtDateTime(o.min.time) }), o.min.temp <= 0 ? 'bad' : ''),
+        kpi(String(o.sprayHours), t('ov.sprayHours')),
+        kpi(o.nextSpray ? fmtDateTime(o.nextSpray) : '–', t('ov.nextSpray'))),
+      h('p', { class: 'small muted' }, t('ov.outlookNote'), ' ', CREDIT));
+  }).catch(() => { /* uten nett: ingen værboks */ });
+  return box;
+}

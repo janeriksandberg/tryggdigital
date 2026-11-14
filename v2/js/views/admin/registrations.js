@@ -19,6 +19,7 @@ export function render(ctx) {
   const shifts = db.shifts.filter((s) => D.dayKey(s.start) === day).sort((a, b) => (people.get(a.personId)?.name || '').localeCompare(people.get(b.personId)?.name || '', 'nb'));
   const crates = db.crates.filter((c) => D.dayKey(c.ts) === day).sort((a, b) => (a.ts < b.ts ? 1 : -1));
   const openOld = db.shifts.filter((s) => !s.end && D.dayKey(s.start) < D.todayKey());
+  const paid = !!db.settings.paidBreaks;
   const nav = (n) => { day = D.addDays(day, n); ctx.redraw(); };
   return h('div', { class: 'stack' },
     pageHead(t('nav.registrations'), t('reg.text'),
@@ -35,11 +36,11 @@ export function render(ctx) {
       h('div', { class: 'seg' }, [['shifts', t('reg.shifts'), shifts.length], ['crates', t('reg.crates'), crates.reduce((a, c) => a + D.num(c.count), 0)]].map(([k, l, n]) => h('button', { type: 'button', class: tab === k ? 'on' : '', onclick: () => { tab = k; ctx.redraw(); } }, `${l} (${n})`)))),
     tab === 'shifts'
       ? h('div', { class: 'card' }, shifts.length ? h('div', { class: 'table-wrap' }, h('table', { class: 'data', 'data-shifts': '' },
-        h('thead', {}, h('tr', {}, ...[t('people.name'), t('reg.in'), t('reg.out'), t('reg.hours'), t('reg.changedBy'), ''].map((x) => h('th', {}, x)))),
+        h('thead', {}, h('tr', {}, ...[t('people.name'), t('reg.in'), t('reg.out'), t('reg.hours'), t('reg.break'), t('reg.changedBy'), ''].map((x) => h('th', {}, x)))),
         h('tbody', {}, shifts.map((s) => h('tr', {},
           h('td', {}, h('strong', {}, people.get(s.personId)?.name || '?')),
           h('td', {}, fmtTime(s.start)), h('td', {}, s.end ? fmtTime(s.end) : h('span', { class: 'tag ok' }, t('reg.atWork'))),
-          h('td', {}, fmtDuration(D.shiftHours(s))), h('td', { class: 'small muted' }, s._by && !people.has(s._by) ? s._by : ''),
+          h('td', {}, fmtDuration(D.shiftHours(s, new Date(), paid)), s.breakStart && !s.end ? h('span', { class: 'tag warn' }, t('reg.onBreak')) : null), h('td', {}, D.breakHours(s) ? `${fmtNum(D.breakHours(s) * 60, 0)} min` : ''), h('td', { class: 'small muted' }, s._by && !people.has(s._by) ? s._by : ''),
           h('td', { class: 'num' }, h('button', { class: 'icon-btn', 'aria-label': t('common.edit'), title: t('common.edit'), onclick: () => editShift(s, ctx) }, icon('edit', 18)))))))) : empty('clock', t('reg.noShifts')))
       : h('div', { class: 'card' }, crates.length ? h('div', { class: 'table-wrap' }, h('table', { class: 'data', 'data-crates': '' },
         h('thead', {}, h('tr', {}, ...[t('reg.time'), t('people.name'), t('spray.field'), t('crate.variety'), t('crate.type'), t('reg.count'), 'kg', t('crate.quality'), ''].map((x) => h('th', {}, x)))),
@@ -57,13 +58,14 @@ async function editShift(s, ctx) {
   const who = select(pickers().map((p) => [p.id, p.name]), cur.personId, { name: 'person', disabled: !!s || null });
   const start = input({ type: 'datetime-local', value: toLocalInput(cur.start), name: 'start', required: true });
   const end = input({ type: 'datetime-local', value: cur.end ? toLocalInput(cur.end) : '', name: 'end' });
-  const r = await modal(s ? t('reg.editShift') : t('reg.addShift'), h('div', { class: 'form-grid' }, field(t('people.name'), who), h('span'), field(t('reg.in'), start), field(t('reg.out'), end, t('reg.outHint'))),
+  const brk = input({ type: 'number', min: 0, max: 600, step: 1, value: cur.breakMin || '', name: 'breakMin', inputmode: 'numeric' });
+  const r = await modal(s ? t('reg.editShift') : t('reg.addShift'), h('div', { class: 'form-grid' }, field(t('people.name'), who), field(t('reg.breakMin'), brk, store.settings().paidBreaks ? t('reg.breakPaidHint') : t('reg.breakHint')), field(t('reg.in'), start), field(t('reg.out'), end, t('reg.outHint'))),
     [s ? { label: t('common.delete'), class: 'danger-light', value: 'delete' } : null, { label: t('common.cancel'), class: 'ghost', value: null },
       { label: t('common.save'), class: 'primary', submit: true, onClick: () => {
         if (!start.value || !who.value) return false;
         if (end.value && end.value <= start.value) { toast(t('reg.endBeforeStart'), 'error'); return false; }
         if (end.value && (new Date(end.value) - new Date(start.value)) > 16 * 3600e3) { toast(t('reg.tooLong'), 'error'); return false; }
-        return { personId: who.value, start: new Date(start.value).toISOString(), end: end.value ? new Date(end.value).toISOString() : null };
+        return { personId: who.value, start: new Date(start.value).toISOString(), end: end.value ? new Date(end.value).toISOString() : null, breakMin: D.num(brk.value), breakStart: end.value ? null : (cur.breakStart || null) };
       } }].filter(Boolean));
   if (!r) return;
   if (r === 'delete') { if (await confirmDialog(t('reg.deleteShift'), t('reg.deleteShiftText'), t('common.delete'))) { store.remove('shifts', s.id, actor()); toast(t('common.deleted')); ctx.redraw(); } return; }
@@ -104,7 +106,7 @@ function exportHours() {
   const y = day.slice(0, 4);
   const rows = store.all('shifts').filter((s) => String(s.start).startsWith(y)).sort((a, b) => (a.start < b.start ? -1 : 1)).map((s) => ({
     [t('people.name')]: people.get(s.personId)?.name || s.personId, [t('people.number')]: people.get(s.personId)?.number || '', [t('common.date')]: D.dayKey(s.start),
-    [t('reg.in')]: fmtTime(s.start), [t('reg.out')]: s.end ? fmtTime(s.end) : '', [t('reg.hours')]: D.round(D.shiftHours(s), 2),
+    [t('reg.in')]: fmtTime(s.start), [t('reg.out')]: s.end ? fmtTime(s.end) : '', [t('reg.break') + ' (min)']: D.round(D.breakHours(s) * 60, 0), [t('reg.hours')]: D.round(D.shiftHours(s, new Date(), !!store.settings().paidBreaks), 2),
   }));
   if (!rows.length) return toast(t('reg.noShifts'), 'info');
   download(`arbeidstid-${y}.csv`, toCsv(rows), 'text/csv');

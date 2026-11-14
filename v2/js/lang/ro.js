@@ -62,4 +62,9 @@ export default {
   'pv.rights.h': 'Drepturile tale', 'pv.rights.p': 'Poți cere acces la date, rectificarea și ștergerea lor (când nu trebuie păstrate) și primirea datelor tale. Contactează angajatorul. Poți depune și o plângere la autoritatea norvegiană pentru protecția datelor (Datatilsynet).',
   'pv.card.h': 'Cardul tău QR', 'pv.card.p': 'Cardul este personal. Nu îl împrumuta nimănui. Dacă îl pierzi, anunță imediat ca să fie blocat și să primești unul nou.',
   'pv.extra.h': 'Mai mult de la angajator',
+  "picker.break": "Pauză",
+  "picker.breakStarted": "Pauză plăcută, {name}!",
+  "picker.breakHelp": "Scanează cardul când te întorci.",
+  "picker.breakOver": "Bine ai revenit, {name}!",
+  "picker.breakLasted": "Pauza a durat {min} min.",
 };

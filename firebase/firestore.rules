@@ -31,8 +31,8 @@ service cloud.firestore {
     function member(t) { return isAdmin(t) || isDevice(t); }
 
     // Samlinger – må stemme med v2/js/core/schema.js
-    function adminCol(c) { return c in ['settings', 'people', 'fields', 'varieties', 'crateTypes', 'products']; }
-    function deviceCol(c) { return c in ['shifts', 'crates', 'sprays', 'stock', 'pallets', 'consents', 'assignments', 'tasks', 'alerts', 'events']; }
+    function adminCol(c) { return c in ['settings', 'people', 'fields', 'varieties', 'crateTypes', 'products', 'buyers', 'deliveries']; }
+    function deviceCol(c) { return c in ['shifts', 'crates', 'sprays', 'fertilizations', 'stock', 'pallets', 'consents', 'assignments', 'tasks', 'alerts', 'events']; }
 
     // Alle synkede dokumenter har versjon (_v), avsender (_dev) og servertid (_srv).
     function validRecord() {

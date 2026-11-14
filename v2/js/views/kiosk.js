@@ -151,13 +151,22 @@ async function endDay(p) {
   const open = openShift(p.id);
   if (!open) { await bigResult({ type: 'error', title: t('picker.notIn', { name: firstName(p) }), lines: [t('picker.notInHelp')], duration: 5000 }); return resetToDeviceLang(); }
   const end = new Date();
-  store.patch('shifts', open.id, { end: end.toISOString() }, p.id);
+  const brk = D.endBreakPatch(open, end) || {};
+  delete brk.lastBreakMin;
+  store.patch('shifts', open.id, { ...brk, end: end.toISOString() }, p.id);
   const sum = D.personSummary(dbView(), p.id);
   await bigResult({
     type: 'success', title: t('picker.goodbye', { name: firstName(p) }),
-    lines: [t('picker.shiftInfo', { from: fmtTime(open.start), to: fmtTime(end), dur: fmtDuration(D.shiftHours({ start: open.start, end: end.toISOString() })) }), t('picker.cratesTodayN', { n: sum.todayCrates })],
+    lines: [t('picker.shiftInfo', { from: fmtTime(open.start), to: fmtTime(end), dur: fmtDuration(D.shiftHours({ ...open, ...brk, end: end.toISOString() }, end, !!store.settings().paidBreaks)) }), t('picker.cratesTodayN', { n: sum.todayCrates })],
     duration: 6000,
   });
+  resetToDeviceLang();
+}
+
+async function startBreak(p) {
+  const open = openShift(p.id);
+  if (open && !open.breakStart) store.patch('shifts', open.id, { breakStart: new Date().toISOString() }, p.id);
+  await bigResult({ type: 'success', title: t('picker.breakStarted', { name: firstName(p) }), lines: [t('picker.breakHelp')], duration: 4500 });
   resetToDeviceLang();
 }
 
@@ -165,6 +174,14 @@ const firstName = (p) => String(p.name || '').split(' ')[0];
 
 /** Kasseregistrering: jorde, sort og kassetype er forhåndsvalgt fra jordet og kan endres med ett trykk. */
 export async function crateFlow(p, { onDone } = {}) {
+  // Kom tilbake fra pause: pausen avsluttes av seg selv når kortet skannes igjen
+  const onBreak = openShift(p.id);
+  if (onBreak?.breakStart) {
+    const patch = D.endBreakPatch(onBreak);
+    const min = patch.lastBreakMin; delete patch.lastBreakMin;
+    store.patch('shifts', onBreak.id, patch, p.id);
+    await bigResult({ type: 'success', title: t('picker.breakOver', { name: firstName(p) }), lines: [t('picker.breakLasted', { min })], duration: 3000 });
+  }
   const db = dbView();
   const today = D.todayKey();
   const fields = db.fields.filter((f) => f.active !== false);
@@ -220,7 +237,9 @@ export async function crateFlow(p, { onDone } = {}) {
       h('div', { class: 'sticky-action' }, h('div', { class: 'inner' },
         h('button', { class: 'btn light xl', type: 'button', onclick: finish }, t('common.cancel')),
         h('button', { class: 'btn primary xxl', type: 'button', 'data-act': 'register', disabled: (karens && blockMode) || null, onclick: () => submit(karens, blockMode) }, icon('check', 28), st.count === 1 ? t('crate.registerOne') : t('crate.registerN', { n: st.count })))),
-      open ? h('div', { class: 'row', style: { justifyContent: 'center' } }, h('button', { class: 'btn ghost', type: 'button', onclick: async () => { flowEl = null; app.replaceChildren(...prev); await endDay(p); } }, icon('logout', 18), t('picker.end'))) : null,
+      open ? h('div', { class: 'row wrap', style: { justifyContent: 'center' } },
+        h('button', { class: 'btn light', type: 'button', 'data-act': 'break', onclick: async () => { flowEl = null; app.replaceChildren(...prev); await startBreak(p); onDone?.(); window.dispatchEvent(new HashChangeEvent('hashchange')); } }, icon('coffee', 18), t('picker.break')),
+        h('button', { class: 'btn ghost', type: 'button', onclick: async () => { flowEl = null; app.replaceChildren(...prev); await endDay(p); } }, icon('logout', 18), t('picker.end'))) : null,
     );
     if (karens) registerKarensAlert(p, st, karens, false);
   };

@@ -119,12 +119,17 @@ describe('godkjent enhet', () => {
     await assertSucceeds(setDoc(doc(db, `tenants/${T}/crates/c2`), rec({ count: 2 })));
     await assertSucceeds(setDoc(doc(db, `tenants/${T}/shifts/s1`), rec({ personId: 'p1' })));
     await assertSucceeds(setDoc(doc(db, `tenants/${T}/sprays/sp1`), rec({ fieldId: 'f1' })));
+    await assertSucceeds(setDoc(doc(db, `tenants/${T}/fertilizations/g1`), rec({ fieldId: 'f1' })));
   });
   test('kan ikke endre personer, satser eller jorder', async () => {
     const db = as('devA', anon);
     await assertFails(setDoc(doc(db, `tenants/${T}/people/p1`), rec({ name: 'Endret', _v: '0000mhz9z.0000.dev1' })));
     await assertFails(setDoc(doc(db, `tenants/${T}/settings/main`), rec({ hourRate: 1 })));
     await assertFails(setDoc(doc(db, `tenants/${T}/fields/f1`), rec({ name: 'X' })));
+    // Kjøpere og leveranser (følgesedler) er også administratordata
+    await assertFails(setDoc(doc(db, `tenants/${T}/buyers/b1`), rec({ name: 'X' })));
+    await assertFails(setDoc(doc(db, `tenants/${T}/deliveries/d1`), rec({ no: '2026-0001' })));
+    await assertSucceeds(getDoc(doc(db, `tenants/${T}/deliveries/d1`)));
   });
   test('kan ikke lese eller skrive en annen kundes data', async () => {
     const db = as('devA', anon);

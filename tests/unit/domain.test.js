@@ -83,3 +83,42 @@ test('merker og rekord for plukker', () => {
   const s = D.personSummary(db, 'a', now);
   assert.equal(s.todayCrates, 12); assert.equal(s.pastBest, 30); assert.equal(s.streak, 2);
 });
+
+test('pause trekkes fra arbeidstiden, med mindre pauser er betalt', () => {
+  const s = { personId: 'a', start: '2026-07-01T07:00:00', end: '2026-07-01T15:00:00', breakMin: 30 };
+  assert.equal(D.shiftHours(s), 7.5);
+  assert.equal(D.shiftHours(s, new Date(), true), 8);
+  // Pågående pause: trekkes fra fram til nå
+  const now = new Date('2026-07-01T12:00:00');
+  const open = { start: '2026-07-01T07:00:00', end: null, breakMin: 15, breakStart: '2026-07-01T11:30:00' };
+  assert.equal(D.shiftHours(open, now), 4.25);
+  assert.deepEqual(D.endBreakPatch(open, now), { breakStart: null, breakMin: 45, lastBreakMin: 30 });
+  assert.equal(D.endBreakPatch({ start: 'x' }), null);
+  // Lønnsgrunnlaget bruker samme regel
+  const db = { settings: { hourRate: 200 }, people: [{ id: 'a', name: 'A' }], shifts: [s], crates: [] };
+  assert.equal(D.payReport(db, '2026-07-01', '2026-07-01')[0].pay, 1500);
+  db.settings.paidBreaks = true;
+  assert.equal(D.payReport(db, '2026-07-01', '2026-07-01')[0].pay, 1600);
+});
+
+test('gjødsling: næring per dekar og sum per jorde', () => {
+  assert.equal(D.nutrientPerDaa(30, 12, 'pct'), 3.6);
+  assert.equal(D.nutrientPerDaa(3, 4.5, 'perUnit'), 13.5);
+  const db = { fertilizations: [{ date: '2026-05-01', fieldId: 'f1', areaDaa: 10, nPerDaa: 3.6, pPerDaa: 1.2, kPerDaa: 5.4 }, { date: '2026-06-01', fieldId: 'f1', areaDaa: 5, nPerDaa: 2, pPerDaa: 0, kPerDaa: 0 }, { date: '2025-06-01', fieldId: 'f1', areaDaa: 10, nPerDaa: 9 }] };
+  assert.deepEqual(D.nutrientTotals(db, '2026-01-01', '2026-12-31'), { f1: { n: 46, p: 12, k: 54, count: 2 } });
+});
+
+test('leveranse: sum og fortløpende følgeseddelnummer', () => {
+  assert.deepEqual(D.deliveryTotals({ lines: [{ kg: 100, crates: 20, pricePerKg: 45 }, { kg: 50.5, crates: 10, pricePerKg: 45 }] }), { kg: 150.5, crates: 30, value: 6772.5 });
+  assert.equal(D.nextDeliveryNo([], 2026), '2026-0001');
+  assert.equal(D.nextDeliveryNo([{ no: '2026-0007' }, { no: '2025-0099' }], 2026), '2026-0008');
+});
+
+test('værutsikt: frosttimer, laveste temperatur og rolige timer', () => {
+  const now = new Date('2026-05-10T18:00:00Z');
+  const step = (h, temp, wind, pr) => ({ time: new Date(now.getTime() + h * 3600000).toISOString(), data: { instant: { details: { air_temperature: temp, wind_speed: wind } }, next_1_hours: { details: { precipitation_amount: pr } } } });
+  const o = D.weatherOutlook({ properties: { timeseries: [step(0, 6, 5, 0), step(6, 1, 1, 0), step(9, -1.5, 1, 0), step(10, -0.5, 2, 0), step(14, 8, 2, 0.4), step(60, -9, 0, 0)] } }, now);
+  assert.equal(o.frostHours, 2); assert.equal(o.min.temp, -1.5); assert.equal(o.sprayHours, 1);
+  assert.equal(o.firstFrost, new Date(now.getTime() + 9 * 3600000).toISOString());
+  assert.equal(D.weatherOutlook({ properties: { timeseries: [] } }, now), null);
+});

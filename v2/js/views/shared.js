@@ -2,7 +2,7 @@
 import * as store from '../core/store.js';
 export function dbAll() {
   const o = { settings: store.settings() };
-  for (const c of ['people', 'fields', 'varieties', 'crateTypes', 'products', 'shifts', 'crates', 'sprays', 'stock', 'pallets', 'consents', 'assignments', 'tasks', 'alerts']) o[c] = store.all(c);
+  for (const c of ['people', 'fields', 'varieties', 'crateTypes', 'products', 'shifts', 'crates', 'sprays', 'stock', 'pallets', 'consents', 'assignments', 'tasks', 'alerts', 'fertilizations', 'buyers', 'deliveries']) o[c] = store.all(c);
   return o;
 }
 /** Hvem gjorde endringen (for _by). Administrator: e-post; demo: 'demo-admin'. */

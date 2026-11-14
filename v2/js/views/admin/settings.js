@@ -8,6 +8,7 @@ import { randomBytes, toHex } from '../../core/crypt.js';
 import { pageHead } from './index.js';
 import { actor } from '../shared.js';
 import { privacyKey } from '../privacy.js';
+import { orgLookupField } from './deliveries.js';
 
 export function render(ctx) {
   const st = store.settings();
@@ -25,11 +26,13 @@ export function render(ctx) {
   return h('div', { class: 'stack' },
     pageHead(t('nav.settings'), t('settings.text')),
     h('div', { class: 'card' }, h('h3', {}, t('settings.farm')), h('div', { class: 'form-grid' },
-      field(t('settings.farmName'), txt('farmName', {}, true)), field(t('settings.orgNo'), txt('orgNo', { inputmode: 'numeric', pattern: '[0-9]{9}' }, true), t('settings.orgNoHint')),
-      field(t('settings.address'), txt('address')), field(t('settings.contactEmail'), txt('contactEmail', { type: 'email' }, true)), field(t('settings.contactPhone'), txt('contactPhone', { type: 'tel' }, true)),
+      h('div', { class: 'full' }, orgLookupField(txt('orgNo', { inputmode: 'numeric', maxlength: 11 }, true), (hit) => { save({ orgNo: hit.orgNo, farmName: st.farmName || hit.name, address: st.address || hit.address }, true); ctx.redraw(); })),
+      field(t('settings.farmName'), txt('farmName', {}, true)), field(t('settings.address'), txt('address')), field(t('settings.contactEmail'), txt('contactEmail', { type: 'email' }, true)), field(t('settings.contactPhone'), txt('contactPhone', { type: 'tel' }, true)),
       field(t('settings.orgSprayer'), txt('orgSprayer', { inputmode: 'numeric' }), t('settings.orgSprayerHint')))),
     h('div', { class: 'card' }, h('h3', {}, t('settings.pay')), h('div', { class: 'form-grid' },
-      field(t('settings.hourRate'), num('hourRate'), t('settings.hourRateHint')), field(t('settings.crateRate'), num('crateRate'), t('settings.crateRateHint'))),
+      field(t('settings.hourRate'), num('hourRate'), t('settings.hourRateHint')), field(t('settings.crateRate'), num('crateRate'), t('settings.crateRateHint')),
+      field(t('settings.minHourRate'), num('minHourRate'), t('settings.minHourRateHint')),
+      field(t('settings.breaks'), select([['unpaid', t('settings.breaksUnpaid')], ['paid', t('settings.breaksPaid')]], st.paidBreaks ? 'paid' : 'unpaid', { name: 'paidBreaks', onchange: (e) => save({ paidBreaks: e.target.value === 'paid' }) }), t('settings.breaksHint'))),
       h('p', { class: 'muted small' }, t('settings.payRule'))),
     h('div', { class: 'card' }, h('h3', {}, t('settings.karens')), h('div', { class: 'form-grid' },
       field(t('settings.karensMode'), select([['block', t('settings.karensBlock')], ['warn', t('settings.karensWarn')]], st.karensMode || 'block', { onchange: (e) => save({ karensMode: e.target.value }) }))),

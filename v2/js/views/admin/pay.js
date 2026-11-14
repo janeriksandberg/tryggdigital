@@ -14,6 +14,8 @@ export function render(ctx) {
   const db = dbAll();
   const rows = D.payReport(db, from, to);
   const sum = rows.reduce((a, r) => ({ hours: a.hours + r.hours, crates: a.crates + r.crates, pay: a.pay + r.pay }), { hours: 0, crates: 0, pay: 0 });
+  const minRate = D.num(db.settings.minHourRate);
+  const below = minRate ? db.people.filter((p) => p.active !== false && D.hourRateFor(db, p) < minRate) : [];
   const presets = [[t('pay.thisMonth'), monthStart(), D.todayKey()], [t('pay.lastMonth'), ...lastMonth()], [t('pay.thisWeek'), weekStart(), D.todayKey()]];
   return h('div', { class: 'stack' },
     pageHead(t('nav.pay'), t('pay.text'),
@@ -24,6 +26,7 @@ export function render(ctx) {
       field(t('common.from'), input({ type: 'date', value: from, onchange: (e) => { from = e.target.value || from; ctx.redraw(); } })),
       field(t('common.to'), input({ type: 'date', value: to, onchange: (e) => { to = e.target.value || to; ctx.redraw(); } })),
       h('div', { class: 'seg' }, presets.map(([l, f, tt]) => h('button', { type: 'button', class: from === f && to === tt ? 'on' : '', onclick: () => { from = f; to = tt; ctx.redraw(); } }, l)))),
+    below.length ? h('div', { class: 'notice warn', 'data-below-min': below.length }, icon('alert'), h('p', {}, t('pay.belowMin', { rate: fmtKr2(minRate), names: below.map((p) => p.name).join(', ') }))) : null,
     h('div', { class: 'kpis' },
       h('div', { class: 'kpi' }, h('div', { class: 'v' }, fmtKr(sum.pay)), h('div', { class: 'l' }, t('pay.total'))),
       h('div', { class: 'kpi' }, h('div', { class: 'v' }, fmtNum(sum.hours, 1)), h('div', { class: 'l' }, t('reg.hours'))),
