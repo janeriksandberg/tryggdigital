@@ -7,7 +7,7 @@ export default {
   'common.to': 'Đến', 'common.year': 'Năm', 'common.yes': 'Có',
   'unit.daa': 'daa', 'unit.days': 'ngày', 'unit.h': 'giờ', 'unit.min': 'phút',
   'role.picker': 'Người hái', 'role.sprayer': 'Người phun thuốc', 'role.foreman': 'Đội trưởng', 'role.admin': 'Quản trị viên',
-  'app.error': 'Đã xảy ra lỗi', 'app.update': 'Cập nhật ngay', 'app.updateReady': 'Đã có phiên bản mới của ứng dụng.',
+  'app.error': 'Đã xảy ra lỗi', 'app.update': 'Cập nhật ngay', 'app.updateReady': 'Đã có phiên bản mới của ứng dụng.', 'app.version': 'Phiên bản',
   'demo.banner': 'Chế độ thử: dữ liệu là giả và chỉ lưu trên thiết bị này.',
   'lang.choose': 'Chọn ngôn ngữ',
   'cards.personal': 'Thẻ cá nhân – không cho người khác mượn',

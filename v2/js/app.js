@@ -115,11 +115,25 @@ async function pickView({ area }) {
 // ---------- Oppdateringer av appen ----------
 let updateReady = false, waitingWorker = null;
 function applyUpdate() { waitingWorker?.postMessage('skipWaiting'); }
+// Ny versjon tas i bruk automatisk når ingen holder på med noe (ingen dialog, skanner, skjema eller registrering),
+// slik at en vanlig omlasting ikke blir stående på gammel versjon. Ellers vises knappen «Oppdater nå».
+function idleForUpdate() {
+  if (document.querySelector('.modal-wrap, .scanner, [data-flow], [data-form], .big-result, .work-main')) return false;
+  const a = document.activeElement;
+  return !(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));
+}
+let autoTimer = null;
+function autoApply() {
+  if (autoTimer) return;
+  const tryNow = () => { if (waitingWorker && idleForUpdate()) { clearInterval(autoTimer); applyUpdate(); } };
+  autoTimer = setInterval(tryNow, 15000);
+  tryNow();
+}
 async function registerSw() {
   if (!('serviceWorker' in navigator) || !['https:'].includes(location.protocol) && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') return;
   try {
     const reg = await navigator.serviceWorker.register('sw.js', { scope: './' });
-    const onWaiting = (w) => { waitingWorker = w; updateReady = true; refreshChrome(); };
+    const onWaiting = (w) => { waitingWorker = w; updateReady = true; refreshChrome(); autoApply(); };
     if (reg.waiting && navigator.serviceWorker.controller) onWaiting(reg.waiting);
     reg.addEventListener('updatefound', () => {
       const nw = reg.installing;
@@ -135,7 +149,9 @@ async function registerSw() {
       try { await (await import('./core/store.js')).flushWrites(); } catch { /* */ }
       location.reload();
     });
-    setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
+    // Se etter ny versjon hvert 10. minutt og når appen kommer fram på skjermen igjen.
+    setInterval(() => reg.update().catch(() => {}), 10 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
   } catch (e) { log('app', 'Service worker ble ikke registrert', { msg: e.message }); }
 }
 

@@ -7,7 +7,7 @@ export default {
   'common.to': 'Til', 'common.year': 'År', 'common.yes': 'Ja',
   'unit.daa': 'daa', 'unit.days': 'dager', 'unit.h': 't', 'unit.min': 'min',
   'role.picker': 'Plukker', 'role.sprayer': 'Sprøyter', 'role.foreman': 'Formann', 'role.admin': 'Administrator',
-  'app.error': 'Noe gikk galt', 'app.update': 'Oppdater nå', 'app.updateReady': 'En ny versjon av appen er klar.',
+  'app.error': 'Noe gikk galt', 'app.update': 'Oppdater nå', 'app.updateReady': 'En ny versjon av appen er klar.', 'app.version': 'Versjon',
   'demo.banner': 'Demomodus: data lagres bare på denne enheten og er oppdiktet.',
   'lang.choose': 'Velg språk', 'lang.workerOnly': 'plukkervisning', 'lang.note': 'Polsk, litauisk, ukrainsk, rumensk og vietnamesisk dekker det plukkere og sprøytere ser. Resten vises på engelsk. Oversettelsene er ikke kontrollert av morsmålsbrukere ennå.',
   'cards.personal': 'Personlig kort – ikke lån det bort',

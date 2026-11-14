@@ -7,7 +7,7 @@ export default {
   'common.to': 'Do', 'common.year': 'Rok', 'common.yes': 'Tak',
   'unit.daa': 'daa', 'unit.days': 'dni', 'unit.h': 'godz.', 'unit.min': 'min',
   'role.picker': 'Zbieracz', 'role.sprayer': 'Opryskujący', 'role.foreman': 'Brygadzista', 'role.admin': 'Administrator',
-  'app.error': 'Coś poszło nie tak', 'app.update': 'Aktualizuj teraz', 'app.updateReady': 'Nowa wersja aplikacji jest gotowa.',
+  'app.error': 'Coś poszło nie tak', 'app.update': 'Aktualizuj teraz', 'app.updateReady': 'Nowa wersja aplikacji jest gotowa.', 'app.version': 'Wersja',
   'demo.banner': 'Tryb demo: dane są zmyślone i zapisane tylko na tym urządzeniu.',
   'lang.choose': 'Wybierz język',
   'cards.personal': 'Karta osobista – nie pożyczaj jej nikomu',

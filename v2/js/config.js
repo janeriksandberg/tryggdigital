@@ -1,3 +1,4 @@
+import { BUILD } from './version.js';
 // Firebase-oppsett for Tryggdigital v2.
 // Verdiene her er ikke hemmelige: en Firebase web-konfigurasjon er ment å ligge i klientkoden.
 // Tilgang styres av sikkerhetsreglene i firebase/firestore.rules og av innlogging.
@@ -22,4 +23,5 @@ export const ACTIVE_CONFIG = emu
   ? { apiKey: 'demo-api-key', authDomain: 'demo-tryggdigital.firebaseapp.com', projectId: 'demo-tryggdigital', appId: 'demo-app' }
   : FIREBASE_CONFIG;
 export const IS_CONFIGURED = !!ACTIVE_CONFIG;
-export const APP_VERSION = '2.0.0';
+export const APP_VERSION = `2.0.0+${BUILD.id}`;
+export { BUILD };

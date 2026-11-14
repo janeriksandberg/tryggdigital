@@ -1,6 +1,6 @@
 // Administrasjon: sidemeny og sider. Krever innlogget administrator med tofaktor (eller demomodus).
 import { t } from '../../i18n.js';
-import { h, icon, clear } from '../../ui.js';
+import { h, icon, clear, versionTag } from '../../ui.js';
 import { S, isAdminHere, signOutAdmin, chooseTenant } from '../../session.js';
 import * as store from '../../core/store.js';
 import { topbar, go, route } from '../../app.js';
@@ -57,7 +57,8 @@ export function view() {
         S.admin?.isSuper ? h('a', { class: 'nav-link', href: '#/super/tenants' }, icon('crown', 20), t('super.title')) : null,
         S.mode === 'device' || S.mode === 'demo' ? h('a', { class: 'nav-link', href: '#/' }, icon('tablet', 20), t('nav.backToKiosk')) : null,
         S.mode !== 'demo' ? h('button', { class: 'nav-link', type: 'button', style: { border: 0, background: 'none', font: 'inherit', cursor: 'pointer', textAlign: 'start' }, onclick: () => signOutAdmin() }, icon('logout', 20), t('login.signOut')) : null,
-        S.admin ? h('div', { class: 'small muted', style: { padding: '8px 12px' } }, S.admin.email) : null);
+        S.admin ? h('div', { class: 'small muted', style: { padding: '8px 12px' } }, S.admin.email) : null,
+        h('div', { style: { padding: '4px 12px' } }, versionTag()));
       content = h('div', { class: 'admin-main', id: 'admin-main' });
       const mod = await LOADERS[id]();
       page = mod;

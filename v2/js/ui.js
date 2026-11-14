@@ -1,6 +1,7 @@
 // UI-hjelpere: elementbygger, ikoner, toast, modaler, lyd/vibrasjon, QR, formatering og nedlasting.
 import { t, locale } from './i18n.js';
 import { ICONS } from './icons.js';
+import { BUILD } from './version.js';
 import { maskTemplate, cleanChars, formatMasked, caretFor, isComplete } from './core/codemask.js';
 
 export function h(tag, attrs = {}, ...children) {
@@ -251,3 +252,7 @@ export function codeInput(mask, attrs = {}, onChange = () => {}) {
   if (attrs.value) reformat(); else sync();
   return { el: wrap, input, complete: () => isComplete(input.value, mask) };
 }
+
+/** Versjonsmerke, f.eks. «Versjon b905be6 · 14.11.2026 15:39». Samme kode står i service worker (td2-b905be6…). */
+export const versionText = () => `${t('app.version')} ${BUILD.id} · ${fmtDateTime(BUILD.built)}`;
+export const versionTag = () => h('span', { class: 'version-tag', 'data-version': BUILD.id }, versionText());

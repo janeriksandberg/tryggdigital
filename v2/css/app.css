@@ -497,3 +497,4 @@ table.data tfoot td { font-weight: 700; background: var(--surface-2); }
 .code-mask .code-ghost .typed { color: transparent; }
 .code-mask.complete .code-input { border-color: var(--brand-2); }
 .cam-switch { width: 100%; }
+.version-tag { font-size: .78rem; color: var(--muted, #6b7a72); font-variant-numeric: tabular-nums; }

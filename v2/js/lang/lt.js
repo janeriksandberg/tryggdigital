@@ -7,7 +7,7 @@ export default {
   'common.to': 'Iki', 'common.year': 'Metai', 'common.yes': 'Taip',
   'unit.daa': 'daa', 'unit.days': 'd.', 'unit.h': 'val.', 'unit.min': 'min.',
   'role.picker': 'Skynėjas', 'role.sprayer': 'Purškėjas', 'role.foreman': 'Brigadininkas', 'role.admin': 'Administratorius',
-  'app.error': 'Kažkas nepavyko', 'app.update': 'Atnaujinti dabar', 'app.updateReady': 'Paruošta nauja programėlės versija.',
+  'app.error': 'Kažkas nepavyko', 'app.update': 'Atnaujinti dabar', 'app.updateReady': 'Paruošta nauja programėlės versija.', 'app.version': 'Versija',
   'demo.banner': 'Demonstracinis režimas: duomenys išgalvoti ir saugomi tik šiame įrenginyje.',
   'lang.choose': 'Pasirinkite kalbą',
   'cards.personal': 'Asmeninė kortelė – neskolinkite jos kitiems',
