@@ -1,7 +1,7 @@
 // Nettbrett-/mobilforside for en godkjent enhet. Alle vanlige brukere identifiseres med QR-kort.
 // Store knapper, få valg, standardverdier fra jordet, lyd og vibrasjon: laget for hansker og dårlig dekning.
 import { t, lang, setLang, resetToDeviceLang } from '../i18n.js';
-import { h, icon, toast, bigResult, feedback, fmtTime, fmtDuration, fmtDate, fmtNum, fmtKr, modal, clear } from '../ui.js';
+import { h, icon, toast, bigResult, feedback, fmtTime, fmtDuration, fmtDate, fmtNum, fmtKr, modal, clear, versionTag } from '../ui.js';
 import * as store from '../core/store.js';
 import * as D from '../core/domain.js';
 import { findPerson } from '../core/qrauth.js';
@@ -74,7 +74,7 @@ function home() {
       tile('admin', 'shield', t('role.admin'), t('kiosk.adminText'), () => go(S.mode === 'demo' || isAdminHere() ? 'admin' : 'login'), 'admin')),
     todayStrip(),
     h('div', { class: 'foot-links' },
-      h('a', { class: 'btn ghost small', href: '#/privacy' }, icon('shield', 16), t('pv.title'))));
+      h('a', { class: 'btn ghost small', href: '#/privacy' }, icon('shield', 16), t('pv.title')), versionTag()));
 }
 
 // ---------- Identifisering med QR ----------

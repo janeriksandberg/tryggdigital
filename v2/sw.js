@@ -2,7 +2,7 @@
 // Omfang: bare /v2/. Appen lastes fra lokal buffer først, slik at den starter selv om GitHub Pages er nede
 // eller enheten er uten nett. Nye versjoner hentes i bakgrunnen og tas i bruk ved neste oppstart.
 // Bufrene heter «td2-…», og vi rører aldri bufrene til versjon 1.
-const VERSION = 'td2-6cb6603fe795';
+const VERSION = 'td2-edbc593c7f1f';
 const FILES = [
  "./",
  "css/app.css",
@@ -88,7 +88,8 @@ const FILES = [
  "vendor/qrcode.js",
  "vendor/shp.js",
  "vendor/togeojson.js",
- "vendor/zxing_reader.wasm"
+ "vendor/zxing_reader.wasm",
+ "js/version.js"
 ];
 
 self.addEventListener('install', (e) => {

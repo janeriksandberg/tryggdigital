@@ -7,7 +7,7 @@ export default {
   'common.to': 'До', 'common.year': 'Рік', 'common.yes': 'Так',
   'unit.daa': 'даа', 'unit.days': 'дн.', 'unit.h': 'год', 'unit.min': 'хв',
   'role.picker': 'Збирач', 'role.sprayer': 'Обприскувач', 'role.foreman': 'Бригадир', 'role.admin': 'Адміністратор',
-  'app.error': 'Щось пішло не так', 'app.update': 'Оновити зараз', 'app.updateReady': 'Нова версія застосунку готова.',
+  'app.error': 'Щось пішло не так', 'app.update': 'Оновити зараз', 'app.updateReady': 'Нова версія застосунку готова.', 'app.version': 'Версія',
   'demo.banner': 'Демо-режим: дані вигадані й зберігаються лише на цьому пристрої.',
   'lang.choose': 'Оберіть мову',
   'cards.personal': 'Особиста картка – нікому її не позичайте',

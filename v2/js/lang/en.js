@@ -6,7 +6,7 @@ export default {
   'common.to': 'To', 'common.year': 'Year', 'common.yes': 'Yes',
   'unit.daa': 'daa', 'unit.days': 'days', 'unit.h': 'h', 'unit.min': 'min',
   'role.picker': 'Picker', 'role.sprayer': 'Sprayer', 'role.foreman': 'Foreman', 'role.admin': 'Administrator',
-  'app.error': 'Something went wrong', 'app.update': 'Update now', 'app.updateReady': 'A new version of the app is ready.',
+  'app.error': 'Something went wrong', 'app.update': 'Update now', 'app.updateReady': 'A new version of the app is ready.', 'app.version': 'Version',
   'demo.banner': 'Demo mode: data is made up and stored only on this device.',
   'lang.choose': 'Choose language', 'lang.workerOnly': 'picker screens', 'lang.note': 'Polish, Lithuanian, Ukrainian, Romanian and Vietnamese cover what pickers and sprayers see. Everything else is shown in English. The translations have not yet been checked by native speakers.',
   'cards.personal': 'Personal card – do not lend it to anyone',

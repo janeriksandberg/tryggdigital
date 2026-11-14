@@ -1,7 +1,7 @@
 // Support-panel: åpnes fra statusmerket øverst. Viser alt support trenger for å hjelpe over telefon,
 // og lar brukeren koble nettbrett direkte sammen uten internett.
 import { t } from '../i18n.js';
-import { h, icon, modal, toast, fmtAgo, qrEl, download } from '../ui.js';
+import { h, icon, modal, toast, fmtAgo, qrEl, download, versionText } from '../ui.js';
 import { S, syncNow, sendDiag, diagnostics, lanSync } from '../session.js';
 import { recent } from '../core/log.js';
 import { scan } from '../scanner.js';
@@ -24,7 +24,7 @@ export async function openSupport() {
       ...row(t('support.peers'), String(n.peers || 0)),
       ...row(t('support.customer'), S.tenantName || S.tenantId || '–'),
       ...row(t('support.device'), S.device ? `${S.device.name || ''} (${S.device.uid.slice(0, 8)}…)` : S.mode === 'admin' ? t('support.adminPc') : '–'),
-      ...row(t('support.version'), d.appVersion),
+      ...row(t('support.version'), versionText()),
       ...row(t('support.storage'), d.storageUsedMb != null ? `${d.storageUsedMb} MB${d.persisted ? ' · ' + t('support.persisted') : ''}` : '–'),
       ...row(t('support.offlineReady'), d.swControlled ? t('common.yes') : t('common.no')),
       n.error ? row(t('support.error'), n.error) : null),

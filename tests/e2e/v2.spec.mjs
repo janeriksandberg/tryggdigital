@@ -343,3 +343,13 @@ test('alle «ny»-skjemaer i administrasjonen har felt under hver overskrift', a
   }
   expect(errors).toEqual([]);
 });
+
+test('versjonsmerket i appen stemmer med service worker-versjonen', async ({ page, request }) => {
+  await startDemo(page);
+  const id = await page.locator('.kiosk-main [data-version]').getAttribute('data-version');
+  const sw = await (await request.get('/v2/sw.js')).text();
+  expect(sw).toContain(`const VERSION = 'td2-${id}`);
+  await page.goto('/v2/#/admin/overview');
+  await acceptPrivacyIfAsked(page);
+  await expect(page.locator('.sidebar [data-version]')).toHaveAttribute('data-version', id);
+});

@@ -7,7 +7,7 @@ export default {
   'common.to': 'Până la', 'common.year': 'Anul', 'common.yes': 'Da',
   'unit.daa': 'daa', 'unit.days': 'zile', 'unit.h': 'h', 'unit.min': 'min',
   'role.picker': 'Culegător', 'role.sprayer': 'Operator stropire', 'role.foreman': 'Șef de echipă', 'role.admin': 'Administrator',
-  'app.error': 'Ceva nu a mers bine', 'app.update': 'Actualizează acum', 'app.updateReady': 'O versiune nouă a aplicației este gata.',
+  'app.error': 'Ceva nu a mers bine', 'app.update': 'Actualizează acum', 'app.updateReady': 'O versiune nouă a aplicației este gata.', 'app.version': 'Versiunea',
   'demo.banner': 'Mod demo: datele sunt inventate și salvate doar pe acest dispozitiv.',
   'lang.choose': 'Alege limba',
   'cards.personal': 'Card personal – nu îl împrumuta nimănui',

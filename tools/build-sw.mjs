@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'v2');
-const SKIP = new Set(['sw.js']);
+const SKIP = new Set(['sw.js', 'version.js']);
 const files = [];
 (function walk(dir) {
   for (const f of readdirSync(dir).sort()) {
@@ -18,6 +18,10 @@ const files = [];
 const hash = createHash('sha256');
 for (const f of files) hash.update(f).update(readFileSync(join(root, f)));
 const version = hash.digest('hex').slice(0, 12);
+// Versjonsmerke som appen viser (Hjelp-vinduet og menyen), så man ser hvilken versjon en enhet kjører.
+const built = new Date().toISOString().slice(0, 16) + 'Z';
+writeFileSync(join(root, 'js', 'version.js'), `// Generert av tools/build-sw.mjs – ikke rediger.\nexport const BUILD = { id: '${version.slice(0, 7)}', built: '${built}' };\n`);
+files.push('js/version.js');
 const tpl = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'sw-template.js'), 'utf8');
 writeFileSync(join(root, 'sw.js'), tpl.replace('__VERSION__', version).replace('__FILES__', JSON.stringify(['./', ...files], null, 1)));
 console.log('sw.js', version, files.length, 'filer');
